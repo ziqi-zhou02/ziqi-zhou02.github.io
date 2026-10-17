@@ -9,7 +9,8 @@ Thinking Machines' *Connectionism* and Lilian Weng's *Lil'Log*. Code written fro
 
 ## 两个版本
 
-- `index.html` 是“房间”版：窗边的书桌，桌上一台铝合金显示器，屏幕是类 macOS 的桌面（菜单栏、毛玻璃窗口、Dock），Dock 的 1–4 是 About / Projects / Writing / Contact。桌上的书是文章和项目，台灯、植物、咖啡、键盘（终端）、触控板、手机、音箱都可以点。
+- `index.html` 是“房间”版：一张用 Blender（Cycles 路径追踪）渲染的写实照片，窗外是上海外滩夜景。显示器上的界面是实时的网页，用透视矩阵贴合到渲染出来的屏幕上；雨只落在玻璃上（用渲染出的遮罩）。台灯有开/关两张渲染图切换。
+- 重新渲染：`tools/room/room_scene.py`用 Poly Haven 的 CC0 模型、贴图和 HDRI 搭场景，导出屏幕/窗户/可点击物体的像素坐标到 `assets/room/layout.js`。
 - 和参考站不一样的地方：窗外天色跟访客本地时间走（清晨/白天/黄昏/夜晚，按 N 切换）；鼠标移动有视差；点键盘会在 CRT 里打开一个能用的终端（`help`、`ls`、`open tokenomy`、`lamp`、`rain`…）；点书时书会从书架上抽出来。
 - `lofi.html` 是原来的极简版。
 - 房间的内容在 `index.html` 底部的 `<template id="ch-N">` 里，书的数据在 `assets/room.js` 顶部的 `BOOKS`。

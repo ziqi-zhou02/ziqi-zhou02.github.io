@@ -7,194 +7,35 @@
   <meta name="description" content="Ziqi Zhou's room on the internet. Projects, writing and contact on a desk by the window.">
   <meta property="og:title" content="Ziqi Zhou">
   <meta property="og:description" content="Projects, writing and contact on a desk by the window.">
+  <meta property="og:image" content="assets/room/night_on.jpg">
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="assets/room/night_on.jpg">
   <link rel="stylesheet" href="assets/room.css">
 </head>
 <body>
+  <div class="loader" id="loader"><span>ziqi</span><i><b id="loadBar"></b></i></div>
+
   <div class="viewport" id="viewport">
     <div class="stage" id="stage">
+      <!-- the room, rendered offline in Blender (Cycles); lamp on and lamp off -->
+      <img class="photo" id="photoOn" src="assets/room/night_on.jpg" alt="A desk at night by a window over a city skyline, with a display, keyboard, lamp, plant and books">
+      <img class="photo off" id="photoOff" src="assets/room/night_off.jpg" alt="" aria-hidden="true">
 
-      <!-- ===================== THE ROOM (1600 × 1000) ===================== -->
-      <svg class="scene" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" class="w1"/><stop offset=".7" class="w2"/><stop offset="1" class="w3"/>
-          </linearGradient>
-          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" class="s1"/><stop offset=".55" class="s2"/><stop offset=".85" class="s3"/><stop offset="1" class="s4"/>
-          </linearGradient>
-          <radialGradient id="horizon" cx=".5" cy="1" r=".7">
-            <stop offset="0" stop-color="#b49cff" stop-opacity=".35"/><stop offset="1" stop-color="#b49cff" stop-opacity="0"/>
-          </radialGradient>
-          <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity=".05"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/>
-          </linearGradient>
-          <linearGradient id="deskTop" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#17171c"/><stop offset=".3" stop-color="#1f1f25"/><stop offset="1" stop-color="#2c2c33"/>
-          </linearGradient>
-          <linearGradient id="alu" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#e9ebef"/><stop offset=".5" stop-color="#c9ccd3"/><stop offset="1" stop-color="#9fa3ab"/>
-          </linearGradient>
-          <linearGradient id="aluSide" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#8d9199"/><stop offset=".5" stop-color="#d9dbe0"/><stop offset="1" stop-color="#8d9199"/>
-          </linearGradient>
-          <radialGradient id="mesh" cx=".4" cy=".35" r=".7">
-            <stop offset="0" stop-color="#6a6b74"/><stop offset="1" stop-color="#2a2a31"/>
-          </radialGradient>
-          <linearGradient id="ceramic" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#d8d9de"/><stop offset=".4" stop-color="#fbfbfd"/><stop offset="1" stop-color="#c5c6cc"/>
-          </linearGradient>
-          <radialGradient id="lampLight" cx=".5" cy=".5" r=".5">
-            <stop offset="0" stop-color="#fff0d6" stop-opacity=".5"/><stop offset=".6" stop-color="#ffe2b8" stop-opacity=".1"/><stop offset="1" stop-color="#ffe2b8" stop-opacity="0"/>
-          </radialGradient>
-          <radialGradient id="screenGlow" cx=".5" cy=".5" r=".5">
-            <stop offset="0" stop-color="#8b7bff" stop-opacity=".5"/><stop offset=".5" stop-color="#8b7bff" stop-opacity=".14"/><stop offset="1" stop-color="#8b7bff" stop-opacity="0"/>
-          </radialGradient>
-          <pattern id="keys" width="16" height="14" patternUnits="userSpaceOnUse">
-            <rect x="1" y="1" width="13.5" height="11.5" rx="2.5" fill="#f7f7f9"/><rect x="1" y="11" width="13.5" height="1.5" rx=".75" fill="#c9cad0"/>
-          </pattern>
-          <filter id="neon" x="-30%" y="-80%" width="160%" height="260%">
-            <feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
-          <clipPath id="glass"><rect x="248" y="48" width="1104" height="592"/></clipPath>
-        </defs>
+      <!-- rain, masked to the visible glass -->
+      <canvas class="rain" id="rain" aria-hidden="true"></canvas>
 
-        <!-- wall -->
-        <rect width="1600" height="1000" fill="url(#wall)"/>
-
-        <!-- floor-to-ceiling window; the city is generated in room.js into #city -->
-        <g clip-path="url(#glass)">
-          <rect x="248" y="48" width="1104" height="592" fill="url(#sky)"/>
-          <ellipse cx="800" cy="640" rx="760" ry="280" fill="url(#horizon)" class="horizon"/>
-          <circle class="moon" cx="1210" cy="140" r="40" fill="#f3eefe" opacity=".12"/><circle class="moon" cx="1210" cy="140" r="20" fill="#f3eefe"/>
-          <circle class="sun" cx="430" cy="170" r="34" fill="#ffe2b4"/>
-          <g id="city"></g>
-          <polygon points="248,48 700,48 380,640 248,640" fill="url(#sheen)"/>
-        </g>
-        <g fill="#0b0b0e">
-          <rect x="240" y="40" width="1120" height="8"/><rect x="240" y="40" width="8" height="610"/><rect x="1352" y="40" width="8" height="610"/>
-          <rect x="613" y="48" width="6" height="592"/><rect x="981" y="48" width="6" height="592"/>
-        </g>
-        <rect x="232" y="640" width="1136" height="14" rx="2" fill="#1a1a1f"/>
-        <rect x="232" y="640" width="1136" height="1.5" fill="#3b3b44"/>
-
-        <!-- left wall: framed photo (→ about) -->
-        <g class="hot" data-action="ch:1" data-label="photo · about me" tabindex="0">
-          <rect x="52" y="150" width="136" height="172" rx="3" fill="#f2f2f5"/>
-          <rect x="66" y="164" width="108" height="144" fill="#0d0d11"/>
-          <image href="images/avatar.svg" x="70" y="180" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
-        </g>
-
-        <!-- right wall: framed print (→ newest essay) -->
-        <g class="hot" data-action="book:owner" data-label="print · one owner, many agents" tabindex="0">
-          <rect x="1404" y="120" width="160" height="210" rx="3" fill="#f2f2f5"/>
-          <rect x="1418" y="134" width="132" height="182" fill="#e6e3f3"/>
-          <circle cx="1484" cy="210" r="44" fill="none" stroke="#7c3aed" stroke-width="1.5"/>
-          <circle cx="1484" cy="210" r="28" fill="none" stroke="#a78bfa" stroke-width="1.2"/>
-          <circle cx="1484" cy="210" r="7" fill="#7c3aed"/>
-          <circle cx="1440" cy="210" r="3.5" fill="#1f1f25"/><circle cx="1528" cy="210" r="3.5" fill="#1f1f25"/><circle cx="1484" cy="166" r="3.5" fill="#1f1f25"/><circle cx="1484" cy="254" r="3.5" fill="#1f1f25"/>
-          <text x="1484" y="290" text-anchor="middle" font-family="Inter" font-weight="600" font-size="11" letter-spacing="2.5" fill="#1f1f25">ONE OWNER</text>
-          <text x="1484" y="304" text-anchor="middle" font-family="Inter" font-weight="400" font-size="9" letter-spacing="2" fill="#5b5b66">MANY AGENTS</text>
-        </g>
-
-        <!-- light cast by the display and the lamp -->
-        <ellipse id="screenGlow" cx="800" cy="430" rx="460" ry="270" fill="url(#screenGlow)"/>
-        <g id="lampGlow">
-          <path d="M420 440 L520 440 L700 870 L180 870 Z" fill="#fff0d6" opacity=".045"/>
-          <ellipse cx="440" cy="740" rx="360" ry="200" fill="url(#lampLight)"/>
-        </g>
-
-        <!-- desk -->
-        <rect x="0" y="660" width="1600" height="212" fill="url(#deskTop)"/>
-        <rect x="0" y="660" width="1600" height="1.5" fill="#3a3a43"/>
-        <ellipse cx="800" cy="720" rx="420" ry="60" fill="#8b7bff" opacity=".07" filter="url(#soft)" id="deskGlow"/>
-        <rect x="0" y="870" width="1600" height="4" fill="#4a4a54"/>
-        <rect x="0" y="874" width="1600" height="126" fill="#0c0c0f"/>
-
-        <!-- plant in a white pot -->
-        <g class="hot" data-action="plant" data-label="plant · water it" tabindex="0">
-          <g id="leaves" style="transform-origin:160px 618px">
-            <g transform="translate(-10 18)">
-              <path d="M170 600 C140 520 80 500 40 470 C90 520 120 560 170 600Z" fill="#2f6b52"/>
-              <path d="M170 600 C150 500 170 430 200 390 C200 460 190 540 170 600Z" fill="#3c8565"/>
-              <path d="M172 600 C210 520 270 500 300 480 C260 540 220 580 172 600Z" fill="#2c6249"/>
-              <path d="M168 600 C120 560 70 580 30 560 C80 600 120 610 168 600Z" fill="#3a7a5d"/>
-              <path d="M170 600 C176 520 240 450 262 410 C252 480 220 560 170 600Z" fill="#45946f"/>
-              <path d="M170 600 C130 530 120 450 104 410 C140 460 160 540 170 600Z" fill="#336f55"/>
-            </g>
-          </g>
-          <rect x="112" y="608" width="96" height="88" rx="10" fill="url(#ceramic)"/>
-          <ellipse cx="160" cy="610" rx="48" ry="6" fill="#bfc0c6"/>
-        </g>
-
-        <!-- arc lamp -->
-        <g class="hot" data-action="lamp" data-label="lamp · toggle (L)" tabindex="0">
-          <ellipse cx="300" cy="694" rx="48" ry="8" fill="#e6e7eb"/>
-          <ellipse cx="300" cy="692" rx="48" ry="6" fill="#f6f6f8"/>
-          <path d="M300 690 C298 520 340 418 470 410" fill="none" stroke="#e6e7eb" stroke-width="5" stroke-linecap="round"/>
-          <ellipse cx="472" cy="420" rx="54" ry="9" fill="#f6f6f8"/>
-          <ellipse cx="472" cy="424" rx="48" ry="5" fill="#fff4e0" id="bulbEdge"/>
-        </g>
-
-        <!-- ceramic mug -->
-        <g class="hot" data-action="mug" data-label="coffee · still warm" tabindex="0">
-          <g id="steam" fill="none" stroke="#f2f2f7" stroke-width="2.5" stroke-linecap="round" opacity=".3">
-            <path d="M494 620 q-9 -18 0 -36 q9 -18 0 -36"/><path d="M512 624 q-9 -18 0 -36 q9 -18 0 -36"/>
-          </g>
-          <rect x="474" y="636" width="58" height="60" rx="9" fill="url(#ceramic)"/>
-          <ellipse cx="503" cy="638" rx="27" ry="5" fill="#3a2418"/>
-        </g>
-
-        <!-- the display: aluminium frame, black glass, stand -->
-        <path d="M762 584 L838 584 L866 690 L734 690 Z" fill="url(#aluSide)"/>
-        <rect x="708" y="686" width="184" height="8" rx="4" fill="url(#alu)"/>
-        <rect x="520" y="250" width="560" height="335" rx="14" fill="url(#alu)"/>
-        <rect x="520" y="250" width="560" height="2" rx="1" fill="#fff" opacity=".7"/>
-        <rect x="527" y="257" width="546" height="321" rx="9" fill="#040406"/>
-
-        <!-- keyboard (→ terminal) -->
-        <g class="hot" data-action="term" data-label="keyboard · terminal (T)" tabindex="0">
-          <rect x="642" y="752" width="296" height="54" rx="10" fill="url(#alu)"/>
-          <rect x="654" y="760" width="272" height="38" fill="url(#keys)"/>
-        </g>
-
-        <!-- trackpad (→ next section) -->
-        <g class="hot" data-action="next" data-label="trackpad · next section" tabindex="0">
-          <rect x="962" y="750" width="132" height="60" rx="12" fill="url(#alu)"/>
-          <rect x="966" y="754" width="124" height="52" rx="9" fill="#d9dbe0"/>
-        </g>
-
-        <!-- phone (→ contact) -->
-        <g class="hot" data-action="ch:4" data-label="phone · contact" tabindex="0">
-          <g transform="rotate(-8 450 790)">
-            <rect x="392" y="772" width="124" height="36" rx="12" fill="#121216"/>
-            <rect x="398" y="777" width="112" height="26" rx="8" fill="#1d1b2a"/>
-            <rect x="398" y="777" width="112" height="26" rx="8" fill="#8b7bff" opacity=".22" id="phoneGlow"/>
-            <circle cx="410" cy="790" r="3" fill="#2a2835"/>
-          </g>
-        </g>
-
-        <!-- books (spines filled in by room.js) -->
-        <g id="books"></g>
-
-        <!-- speaker (→ sound) -->
-        <g class="hot" data-action="sound" data-label="speaker · rain + music (M)" tabindex="0">
-          <ellipse cx="1422" cy="694" rx="34" ry="6" fill="#000" opacity=".35"/>
-          <path d="M1388 664 A34 30 0 0 0 1456 664 L1456 660 A34 10 0 0 0 1388 660 Z" fill="url(#mesh)"/>
-          <ellipse cx="1422" cy="660" rx="34" ry="10" fill="#3b3b44"/>
-          <ellipse cx="1422" cy="660" rx="22" ry="6" fill="#1a1a20" id="speakerTop"/>
-        </g>
-
-        <!-- darkness when the lamp is off (the screen sits above this) -->
-        <rect id="dark" width="1600" height="1000" fill="#030305" opacity="0" pointer-events="none"/>
+      <!-- steam over the mug, glow on the speaker -->
+      <svg class="steam" id="steam" viewBox="0 0 60 120" aria-hidden="true">
+        <path d="M22 118 q-10 -22 0 -44 q10 -22 0 -44 q-8 -16 0 -28"/>
+        <path d="M36 118 q-10 -22 0 -44 q10 -22 0 -44 q-8 -16 0 -28"/>
       </svg>
+      <div class="speaker-glow" id="speakerGlow" aria-hidden="true"></div>
 
-      <!-- rain on the glass -->
-      <canvas id="rain" class="rain"></canvas>
+      <!-- clickable objects are added here by room.js from the render's layout -->
+      <div class="hotspots" id="hotspots"></div>
 
       <!-- ===================== THE SCREEN ===================== -->
       <div class="screen" id="screen">
@@ -215,7 +56,7 @@
           <span class="dock-sep"></span>
           <button data-term title="Terminal (T)"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M7.5 10l2.5 2-2.5 2M12 14.5h4"/></svg></button>
         </nav>
-        <div class="boot" id="boot"><span>ziqi</span><i><b id="bootBar"></b></i></div>
+        <div class="glare" aria-hidden="true"></div>
       </div>
     </div>
   </div>
@@ -228,19 +69,17 @@
     </nav>
   </header>
   <div class="hud-bottom">
-    <span class="hint">1–4 sections · T terminal · Z zoom · L lamp · M sound · N sky · Esc back</span>
+    <span class="hint">1–4 sections · T terminal · Z zoom · L lamp · M sound · R rain · Esc back</span>
     <button class="pill" id="creditsBtn">Credits</button>
     <a class="pill" href="lofi.html">Lo-fi</a>
     <button class="pill" id="soundBtn">Sound off</button>
   </div>
   <div class="tip" id="tip" role="status"></div>
-  <div class="hud-left" id="phaseLabel"></div>
   <div class="credits" id="credits" hidden>
     <b>Credits</b>
     <p>Inspired by <a href="https://felixrieseberg.com/?room=1" target="_blank" rel="noopener">Felix Rieseberg's room</a>.</p>
-    <p>Everything here is drawn in SVG and generated in the browser, including the skyline, the rain and the sound.</p>
-    <p>Type set in Inter and JetBrains Mono.</p>
-    <p class="dim">N changes the sky · R stops the rain</p>
+    <p>The room is modelled with Blender's Python API and rendered with Cycles. The view is the <a href="https://polyhaven.com/a/shanghai_bund" target="_blank" rel="noopener">Shanghai Bund</a> HDRI; the plant, books, photo frame and the wall and wood textures are from <a href="https://polyhaven.com" target="_blank" rel="noopener">Poly Haven</a> (CC0).</p>
+    <p>The display, keyboard, lamp and the rest are modelled in code. Rain and sound are generated in the browser.</p>
   </div>
 
   <!-- content for each section (kept in the page so it's readable without JS) -->
@@ -289,6 +128,7 @@
     </ul>
   </template>
 
+  <script src="assets/room/layout.js"></script>
   <script src="assets/room.js"></script>
 </body>
 </html>
