@@ -3,41 +3,41 @@
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const NS = 'http://www.w3.org/2000/svg';
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const stage = $('#stage'), tv = $('#tv'), tip = $('#tip');
+  const stage = $('#stage'), tv = $('#tv'), win = $('#win'), tip = $('#tip');
 
-  // Stage geometry (stage pixels) of the CRT screen, used for zooming.
-  const SCREEN = { x: 636, y: 336, w: 328, h: 248 };
+  // Stage geometry (stage pixels) of the display's screen, used for zooming.
+  const SCREEN = { x: 536, y: 266, w: 528, h: 297 };
   const FOCUS = { x: 800, y: 470 };
   const state = { ch: null, zoom: false, lamp: true, sound: false };
 
-  /* ---------------- data: tapes on the desk (edit me) ---------------- */
-  const TAPES = [
-    { id: 'tokenomy', label: 'TOKENOMY', year: '2026', color: '#a78bfa', kind: 'post',
-      title: 'FOLLOWING A DOLLAR THROUGH THE TOKENOMY', meta: 'essay · 15 min',
+  /* ---------------- data: books on the desk (edit me) ---------------- */
+  const BOOKS = [
+    { id: 'tokenomy', spine: 'TOKENOMY', color: '#ece9f7', ink: '#1f1f25', h: 122, w: 30, kind: 'Essay',
+      title: 'Following a Dollar Through the Tokenomy', meta: 'Essay · 15 min read',
       text: 'How neoclouds and token sellers make money, who keeps what along the value chain, and how the money circles back.',
-      href: 'posts/tokenomy.html', cta: '▶ PLAY (READ)' },
-    { id: 'owner', label: 'ONE OWNER', year: '2026', color: '#f0abfc', kind: 'post',
-      title: 'ONE OWNER, MANY AGENTS', meta: 'essay · 9 min',
+      href: 'posts/tokenomy.html', cta: 'Read essay' },
+    { id: 'owner', spine: 'ONE OWNER', color: '#8b7bff', ink: '#ffffff', h: 110, w: 26, kind: 'Essay',
+      title: 'One Owner, Many Agents', meta: 'Essay · 9 min read',
       text: 'Notes on the future of organizations, and why context flows better when one person working with agents owns the loop.',
-      href: 'posts/one-owner-many-agents.html', cta: '▶ PLAY (READ)' },
-    { id: 'alpha', label: 'PROJECT ALPHA', year: '—', color: '#7dd3fc', kind: 'project',
-      title: 'PROJECT ALPHA', meta: 'Python · PyTorch',
-      text: 'A one-line pitch of what this project does and why it is interesting.', href: 'https://github.com/ziqi-zhou02', cta: '▶ SOURCE' },
-    { id: 'beta', label: 'PROJECT BETA', year: '—', color: '#fde68a', kind: 'project',
-      title: 'PROJECT BETA', meta: 'React · Node',
-      text: 'A full-stack web app. Describe the problem, your approach and the result.', href: 'https://github.com/ziqi-zhou02', cta: '▶ SOURCE' },
-    { id: 'gamma', label: 'PROJECT GAMMA', year: '—', color: '#86efac', kind: 'project',
-      title: 'PROJECT GAMMA', meta: 'Rust · CLI',
-      text: 'A CLI tool, research experiment or hackathon build. Keep it short.', href: 'https://github.com/ziqi-zhou02', cta: '▶ SOURCE' },
-    { id: 'delta', label: 'PROJECT DELTA', year: '—', color: '#fca5a5', kind: 'project',
-      title: 'PROJECT DELTA', meta: 'D3 · SQL',
-      text: 'A data visualization or analysis project with a link to a live demo.', href: 'https://github.com/ziqi-zhou02', cta: '▶ SOURCE' },
+      href: 'posts/one-owner-many-agents.html', cta: 'Read essay' },
+    { id: 'alpha', spine: 'ALPHA', color: '#26262e', ink: '#e7e7ee', h: 128, w: 32, kind: 'Project',
+      title: 'Project Alpha', meta: 'Project · Python · PyTorch',
+      text: 'A one-line pitch of what this project does and why it is interesting.', href: 'https://github.com/ziqi-zhou02', cta: 'View source' },
+    { id: 'beta', spine: 'BETA', color: '#c7d2fe', ink: '#1f1f25', h: 104, w: 28, kind: 'Project',
+      title: 'Project Beta', meta: 'Project · React · Node',
+      text: 'A full-stack web app. Describe the problem, your approach and the result.', href: 'https://github.com/ziqi-zhou02', cta: 'View source' },
+    { id: 'gamma', spine: 'GAMMA', color: '#f5d0fe', ink: '#1f1f25', h: 118, w: 26, kind: 'Project',
+      title: 'Project Gamma', meta: 'Project · Rust · CLI',
+      text: 'A CLI tool, research experiment or hackathon build. Keep it short.', href: 'https://github.com/ziqi-zhou02', cta: 'View source' },
+    { id: 'delta', spine: 'DELTA', color: '#3a3a46', ink: '#e7e7ee', h: 98, w: 30, kind: 'Project',
+      title: 'Project Delta', meta: 'Project · D3 · SQL',
+      text: 'A data visualization or analysis project with a link to a live demo.', href: 'https://github.com/ziqi-zhou02', cta: 'View source' },
   ];
-  const CH_NAMES = ['MENU', 'ABOUT', 'PROJECTS', 'WRITING', 'CONTACT'];
+  const CH_NAMES = ['Home', 'About', 'Projects', 'Writing', 'Contact'];
   const HASH = { about: 1, projects: 2, writing: 3, contact: 4 };
 
   // Small seeded RNG so the skyline looks the same on every visit.
-  let seed = 7;
+  let seed = 11;
   const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   const el = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
 
@@ -47,52 +47,50 @@
   const layer = (cls, minTop, maxTop, minW, maxW, litRate, warm) => {
     const g = el('g', {}, city);
     const gb = el('g', { class: cls }, g), gw = el('g', { class: 'wins' }, g);
-    let x = 300;
-    while (x < 1300) {
+    let x = 230;
+    while (x < 1370) {
       const w = minW + rnd() * (maxW - minW), top = minTop + rnd() * (maxTop - minTop);
-      el('rect', { x: x.toFixed(1), y: top.toFixed(1), width: w.toFixed(1), height: (640 - top).toFixed(1) }, gb);
-      for (let wy = top + 10; wy < 600; wy += 14) {
+      el('rect', { x: x.toFixed(1), y: top.toFixed(1), width: w.toFixed(1), height: (660 - top).toFixed(1) }, gb);
+      for (let wy = top + 10; wy < 630; wy += 14) {
         for (let wx = x + 6; wx < x + w - 8; wx += 11) {
           if (rnd() < litRate) {
-            const c = warm && rnd() < 0.7 ? '#ffcf8a' : '#c4b5fd';
+            const c = warm && rnd() < 0.55 ? '#ffe1b0' : '#cfc6ff';
             lights.push(el('rect', { x: wx.toFixed(1), y: wy.toFixed(1), width: 5, height: 7, fill: c, opacity: (0.35 + rnd() * 0.55).toFixed(2) }, gw));
           }
         }
       }
       x += w + 2 + rnd() * 10;
     }
-    return g;
   };
-  layer('b1', 360, 470, 40, 90, 0.05, false);
-  layer('b2', 250, 430, 36, 80, 0.12, true);
-  layer('b3', 380, 520, 50, 120, 0.18, true);
-  // a neon sign and a blinking light on the skyline
-  const neon = el('text', { x: 1010, y: 404, 'font-family': 'Inter', 'font-weight': 700, 'font-size': 30, 'letter-spacing': 3, fill: '#f0abfc', filter: 'url(#neon)', class: 'neon' }, city);
+  layer('b1', 360, 480, 40, 90, 0.05, false);
+  layer('b2', 230, 440, 36, 80, 0.12, true);
+  layer('b3', 380, 540, 50, 120, 0.16, true);
+  const neon = el('text', { x: 1112, y: 330, 'font-family': 'Inter', 'font-weight': 600, 'font-size': 26, 'letter-spacing': 6, fill: '#d8ccff', filter: 'url(#neon)', class: 'neon' }, city);
   neon.textContent = 'NEOCLOUD';
-  el('rect', { x: 1000, y: 376, width: 190, height: 38, fill: 'none', stroke: '#f0abfc', 'stroke-width': 2, opacity: .5, filter: 'url(#neon)', class: 'neon' }, city);
-  const beacon = el('circle', { cx: 488, cy: 252, r: 4, fill: '#ff5f7a', filter: 'url(#neon)' }, city);
+  const beacon = el('circle', { cx: 470, cy: 236, r: 4, fill: '#ff5f7a', filter: 'url(#neon)' }, city);
   if (!reduceMotion) {
     setInterval(() => { const l = lights[(rnd() * lights.length) | 0]; if (l) l.setAttribute('opacity', rnd() < 0.5 ? '0.08' : (0.4 + rnd() * 0.5).toFixed(2)); }, 700);
     setInterval(() => beacon.setAttribute('opacity', beacon.getAttribute('opacity') === '0.15' ? '1' : '0.15'), 900);
-    setInterval(() => { neon.setAttribute('opacity', '0.35'); setTimeout(() => neon.setAttribute('opacity', '1'), 90); }, 5200);
   }
 
-  /* ---------------- tapes ---------------- */
-  const tapesG = $('#tapes');
-  TAPES.slice().reverse().forEach((t, i) => {
-    const w = 196 + (i % 3) * 8, x = 1052 + ((i * 37) % 3) * 6, y = 672 - i * 24;
-    const g = el('g', { class: 'tape', tabindex: 0, 'data-tape': t.id, 'data-label': `tape · ${t.title.toLowerCase()}` }, tapesG);
-    el('rect', { x, y, width: w, height: 22, rx: 3, fill: '#1b1724' }, g);
-    el('rect', { x: x + 12, y: y + 4, width: w - 54, height: 14, rx: 2, fill: t.color }, g);
-    el('rect', { x: x + w - 36, y: y + 6, width: 24, height: 10, rx: 2, fill: '#2c2638' }, g);
-    const label = el('text', { x: x + 18, y: y + 15, 'font-family': 'JetBrains Mono', 'font-size': 10, 'font-weight': 500, fill: '#16121f' }, g);
-    label.textContent = t.label;
-    const yr = el('text', { x: x + w - 50, y: y + 15, 'text-anchor': 'end', 'font-family': 'JetBrains Mono', 'font-size': 9, fill: '#16121f', opacity: .7 }, g);
-    yr.textContent = t.year;
+  /* ---------------- books ---------------- */
+  const booksG = $('#books');
+  let bx = 1134;
+  BOOKS.forEach(b => {
+    const y = 694 - b.h;
+    const g = el('g', { class: 'book', tabindex: 0, 'data-book': b.id, 'data-label': `${b.kind.toLowerCase()} · ${b.title.toLowerCase()}` }, booksG);
+    el('rect', { x: bx, y, width: b.w, height: b.h, rx: 2.5, fill: b.color }, g);
+    el('rect', { x: bx, y: y + 10, width: b.w, height: 1.5, fill: b.ink, opacity: .25 }, g);
+    el('rect', { x: bx, y: y + b.h - 12, width: b.w, height: 1.5, fill: b.ink, opacity: .25 }, g);
+    const t = el('text', { x: bx + b.w / 2 + 3.5, y: y + b.h / 2, 'text-anchor': 'middle', transform: `rotate(-90 ${bx + b.w / 2 + 3.5} ${y + b.h / 2})`, 'font-family': 'Inter', 'font-weight': 600, 'font-size': 9.5, 'letter-spacing': 1.6, fill: b.ink }, g);
+    t.textContent = b.spine;
+    bx += b.w + 2;
   });
+  // a brushed-aluminium bookend
+  el('path', { d: `M${bx + 2} 694 L${bx + 2} 590 L${bx + 8} 590 L${bx + 8} 688 L${bx + 40} 688 L${bx + 40} 694 Z`, fill: 'url(#alu)' }, booksG);
 
-  /* ---------------- layout: cover + zoom ---------------- */
-  // Parallax: the room drifts a little with the pointer and the city drifts the other way,
+  /* ---------------- layout: cover + zoom + parallax ---------------- */
+  // The room drifts a little with the pointer and the city drifts the other way,
   // which reads as depth even though everything is flat.
   const parallaxOn = !reduceMotion && matchMedia('(hover: hover) and (pointer: fine)').matches;
   const par = { x: 0, y: 0, tx: 0, ty: 0 };
@@ -102,14 +100,14 @@
     let s, tx, ty;
     if (state.zoom) {
       const availH = vh - 150;
-      s = Math.min((vw * 0.92) / SCREEN.w, (availH * 0.95) / SCREEN.h);
+      s = Math.min((vw * (vw < 700 ? 0.98 : 0.84)) / SCREEN.w, (availH * 0.94) / SCREEN.h);
       tx = vw / 2 - s * (SCREEN.x + SCREEN.w / 2);
-      ty = 70 + availH / 2 - s * (SCREEN.y + SCREEN.h / 2);
+      ty = 76 + availH / 2 - s * (SCREEN.y + SCREEN.h / 2);
     } else {
       s = Math.max(vw / 1600, vh / 1000) * (parallaxOn ? 1.03 : 1);
       tx = Math.min(0, Math.max(vw - 1600 * s, vw / 2 - s * FOCUS.x));
       ty = Math.min(0, Math.max(vh - 1000 * s, vh / 2 - s * FOCUS.y));
-      const mx = Math.min(-tx, 1600 * s - vw - (-tx)), my = Math.min(-ty, 1000 * s - vh - (-ty));
+      const mx = Math.min(-tx, 1600 * s - vw + tx), my = Math.min(-ty, 1000 * s - vh + ty);
       tx += Math.max(-mx, Math.min(mx, -par.x * 14));
       ty += Math.max(-my, Math.min(my, -par.y * 8));
     }
@@ -132,62 +130,34 @@
     loop();
   }
 
-  /* ---------------- TV ---------------- */
-  const staticCanvas = $('#static'), sctx = staticCanvas.getContext('2d');
-  staticCanvas.width = 164; staticCanvas.height = 124;
-  const burstStatic = (ms = 240) => {
-    if (reduceMotion) return;
-    staticCanvas.classList.add('on');
-    const img = sctx.createImageData(164, 124), end = performance.now() + ms;
-    const frame = () => {
-      for (let i = 0; i < img.data.length; i += 4) { const v = (Math.random() * 255) | 0; img.data[i] = v * .8; img.data[i + 1] = v * .8; img.data[i + 2] = v; img.data[i + 3] = 255; }
-      sctx.putImageData(img, 0, 0);
-      if (performance.now() < end) requestAnimationFrame(frame); else staticCanvas.classList.remove('on');
-    };
-    frame();
-  };
-  const show = (html, osd) => {
-    burstStatic();
-    setTimeout(() => {
-      tv.innerHTML = html; tv.scrollTop = 0;
-      tv.classList.remove('tv-enter'); void tv.offsetWidth; tv.classList.add('tv-enter');
-      $('#osdCh').textContent = osd;
-    }, reduceMotion ? 0 : 160);
+  /* ---------------- the screen ---------------- */
+  const show = (html, title, { term = false } = {}) => {
+    tv.innerHTML = html; tv.scrollTop = 0;
+    $('#winTitle').textContent = title;
+    $('#mbApp').textContent = title;
+    win.classList.toggle('term-mode', term);
+    win.classList.remove('swap'); void win.offsetWidth; win.classList.add('swap');
   };
   const markNav = n => {
     $$('.hud-top nav a').forEach(a => a.classList.toggle('on', +a.dataset.ch === n));
-    $$('.crt-buttons button').forEach(b => b.classList.toggle('on', +b.dataset.ch === n));
+    $$('.dock button').forEach(b => b.classList.toggle('on', n === 'term' ? b.hasAttribute('data-term') : +b.dataset.ch === n));
   };
   const setChannel = (n, { zoom = true } = {}) => {
     state.ch = n;
-    show($(`#ch-${n}`).innerHTML, `CH 0${n}`);
-    $('#osdLeft').textContent = n === 0 ? '▶ PLAY' : `▶ ${CH_NAMES[n]}`;
+    show($(`#ch-${n}`).innerHTML, CH_NAMES[n]);
     markNav(n);
-    $$('.tape').forEach(t => t.classList.remove('inserted'));
+    $$('.book').forEach(t => t.classList.remove('inserted'));
     const name = Object.keys(HASH).find(k => HASH[k] === n);
     try { history.replaceState(null, '', name ? `#${name}` : location.pathname); } catch (e) {}
-    if (zoom !== state.zoom && (zoom || n === 0)) setZoom(zoom);
+    if (zoom !== state.zoom) setZoom(zoom);
   };
-  const playTape = id => {
-    const t = TAPES.find(x => x.id === id);
-    if (!t) return;
-    $$('.tape').forEach(g => g.classList.toggle('inserted', g.dataset.tape === id));
-    const src = $(`.tape[data-tape="${id}"]`);
-    if (src && !reduceMotion) {
-      const bb = src.getBBox(), ghost = src.cloneNode(true);
-      ghost.removeAttribute('tabindex'); ghost.setAttribute('class', 'tape-ghost');
-      src.parentNode.appendChild(ghost);
-      const dx = 715 - (bb.x + bb.width / 2), dy = 675 - (bb.y + bb.height / 2);
-      ghost.animate([
-        { transform: 'translate(0,0) scale(1)', opacity: 1 },
-        { transform: `translate(${dx * 0.6}px, ${dy - 60}px) scale(.9)`, opacity: 1, offset: .55 },
-        { transform: `translate(${dx}px, ${dy}px) scale(.82)`, opacity: 0 }
-      ], { duration: 700, easing: 'cubic-bezier(.5,0,.3,1)' }).onfinish = () => ghost.remove();
-    }
-    const ext = t.href.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
-    show(`<div class="tape-view"><h2>${t.title}</h2><p class="dim">${t.meta}</p><p>${t.text}</p><a class="btn" href="${t.href}"${ext}>${t.cta}</a></div>`, t.kind === 'post' ? 'VHS · ESSAY' : 'VHS · PROJECT');
-    $('#osdLeft').textContent = '▶ VHS';
-    markNav(-1);
+  const playBook = id => {
+    const b = BOOKS.find(x => x.id === id);
+    if (!b) return;
+    $$('.book').forEach(g => g.classList.toggle('inserted', g.dataset.book === id));
+    const ext = b.href.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
+    show(`<p class="meta">${b.meta}</p><h2>${b.title}</h2><p>${b.text}</p><a class="btn" href="${b.href}"${ext}>${b.cta} →</a>`, b.kind);
+    markNav(b.kind === 'Essay' ? 3 : 2);
     if (!state.zoom) setZoom(true);
   };
 
@@ -201,10 +171,10 @@
     state.lamp = on;
     $('#lampGlow').style.opacity = on ? 1 : 0;
     $('#bulbEdge').style.opacity = on ? 1 : 0;
-    $('#dark').setAttribute('opacity', on ? 0 : 0.42);
+    $('#dark').setAttribute('opacity', on ? 0 : 0.45);
   };
 
-  /* sound: filtered-noise rain plus a slow lo-fi chord loop, all generated */
+  /* sound: filtered-noise rain plus a slow ambient chord loop, all generated */
   let audio = null;
   const startAudio = () => {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -214,46 +184,33 @@
     let last = 0; for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; last = (last + 0.04 * w) / 1.04; d[i] = last * 3 + w * 0.04; }
     const noise = ctx.createBufferSource(); noise.buffer = buf; noise.loop = true;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1600;
-    const rg = ctx.createGain(); rg.gain.value = 0.22;
+    const rg = ctx.createGain(); rg.gain.value = 0.2;
     noise.connect(lp).connect(rg).connect(master); noise.start();
-    const pad = ctx.createBiquadFilter(); pad.type = 'lowpass'; pad.frequency.value = 900; pad.connect(master);
+    const pad = ctx.createBiquadFilter(); pad.type = 'lowpass'; pad.frequency.value = 1100; pad.connect(master);
     const chords = [[261.6, 329.6, 392, 493.9], [220, 261.6, 329.6, 392], [174.6, 220, 261.6, 329.6], [196, 246.9, 293.7, 349.2]];
     let step = 0;
     const play = () => {
       const t0 = ctx.currentTime;
       chords[step++ % chords.length].forEach((f, i) => {
         const o = ctx.createOscillator(), g = ctx.createGain();
-        o.type = 'triangle'; o.frequency.value = f / 2; o.detune.value = (i - 1.5) * 4;
-        g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.045, t0 + 0.6); g.gain.linearRampToValueAtTime(0, t0 + 3.6);
-        o.connect(g).connect(pad); o.start(t0); o.stop(t0 + 3.8);
+        o.type = 'sine'; o.frequency.value = f; o.detune.value = (i - 1.5) * 5;
+        g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.035, t0 + 0.9); g.gain.linearRampToValueAtTime(0, t0 + 3.8);
+        o.connect(g).connect(pad); o.start(t0); o.stop(t0 + 4);
       });
     };
-    play(); const timer = setInterval(play, 3200);
+    play(); const timer = setInterval(play, 3400);
     return { ctx, master, timer };
   };
   const setSound = on => {
     state.sound = on;
-    $('#soundBtn').textContent = on ? '♪ SOUND ON' : '♪ SOUND OFF';
-    $$('#reelL, #reelR').forEach(r => r.classList.toggle('spin', on));
+    $('#soundBtn').textContent = on ? 'Sound on' : 'Sound off';
+    $('.hot[data-action="sound"]').classList.toggle('playing', on);
     if (on && !audio) { try { audio = startAudio(); } catch (e) { state.sound = false; } }
     else if (!on && audio) {
       const a = audio; audio = null;
       a.master.gain.linearRampToValueAtTime(0, a.ctx.currentTime + 0.6);
       setTimeout(() => { clearInterval(a.timer); a.ctx.close(); }, 700);
     }
-  };
-
-  const act = (action, ev) => {
-    const x = ev && ev.clientX ? ev.clientX : innerWidth / 2, y = ev && ev.clientY ? ev.clientY : innerHeight / 2;
-    if (action.startsWith('ch:')) setChannel(+action.slice(3));
-    else if (action.startsWith('tape:')) playTape(action.slice(5));
-    else if (action === 'lamp') { setLamp(!state.lamp); say(state.lamp ? 'click. light on' : 'click. moody now', x, y); }
-    else if (action === 'plant') { const l = $('#leaves'); l.classList.remove('wiggle'); void l.getBBox(); l.classList.add('wiggle'); say('watered. it looks happier', x, y); }
-    else if (action === 'mug') { const s = $('#steam'); s.style.opacity = 0.9; setTimeout(() => (s.style.opacity = ''), 1200); say('still warm', x, y); }
-    else if (action === 'term') openTerminal();
-    else if (action === 'next') { setChannel(state.ch && state.ch < 4 ? state.ch + 1 : 1); }
-    else if (action === 'zoom') { if (state.ch === null) setChannel(0); else setZoom(!state.zoom); }
-    else if (action === 'sound') { setSound(!state.sound); say(state.sound ? 'rain + lo-fi, generated live' : 'quiet again', x, y); }
   };
 
   /* ---------------- time of day (follows the visitor's clock) ---------------- */
@@ -263,28 +220,28 @@
   const setPhase = ph => {
     document.body.dataset.phase = ph;
     const d = new Date(), hh = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
-    $('#phaseLabel').textContent = phaseOverride ? `${ph} · press N to cycle` : `your time ${hh}:${mm} · ${ph}`;
+    $('#phaseLabel').textContent = phaseOverride ? `${ph} · press N to cycle` : `Your time ${hh}:${mm} · ${ph}`;
   };
   const cyclePhase = () => {
-    const cur = document.body.dataset.phase;
-    phaseOverride = PHASES[(PHASES.indexOf(cur) + 1) % 4];
+    phaseOverride = PHASES[(PHASES.indexOf(document.body.dataset.phase) + 1) % 4];
     setPhase(phaseOverride);
   };
   setPhase(phaseFor(new Date().getHours()));
   setInterval(() => { if (!phaseOverride) setPhase(phaseFor(new Date().getHours())); }, 60000);
 
-  /* ---------------- a small terminal inside the CRT ---------------- */
+  /* ---------------- terminal ---------------- */
+  let rainOn = true;
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let termLog = [];
   const termPrint = line => { termLog.push(line); const out = $('#termOut'); if (out) { out.insertAdjacentHTML('beforeend', `<div>${line}</div>`); tv.scrollTop = tv.scrollHeight; } };
   const TERM = {
-    help: () => 'commands: ls, cat about.txt, open &lt;name&gt;, lamp, rain, sound, time, phase, whoami, clear, exit',
-    ls: () => 'about.txt  projects/  writing/  contact.txt\n' + TAPES.map(t => t.id + '.vhs').join('  '),
-    'cat about.txt': () => esc($('#ch-1').content.textContent.replace(/\s+/g, ' ').trim().replace(/^ABOUT /, '')),
+    help: () => 'commands: ls, cat about.txt, open <name>, lamp, rain, sound, sky, time, whoami, clear, exit'.replace(/</g, '&lt;').replace(/>/g, '&gt;'),
+    ls: () => 'about.txt  contact.txt\n' + BOOKS.map(t => t.id).join('  '),
+    'cat about.txt': () => esc($('#ch-1').content.textContent.replace(/\s+/g, ' ').trim().replace(/^About /, '')),
     'cat contact.txt': () => 'github.com/ziqi-zhou02',
-    whoami: () => 'a guest in ziqi\'s room',
+    whoami: () => "a guest in ziqi's room",
     time: () => new Date().toLocaleString(),
-    phase: () => { cyclePhase(); return 'sky → ' + document.body.dataset.phase; },
+    sky: () => { cyclePhase(); return 'sky → ' + document.body.dataset.phase; },
     lamp: () => { setLamp(!state.lamp); return state.lamp ? 'lamp on' : 'lamp off'; },
     rain: () => { rainOn = !rainOn; return rainOn ? 'rain on' : 'rain stopped'; },
     sound: () => { setSound(!state.sound); return state.sound ? 'sound on' : 'sound off'; },
@@ -295,44 +252,56 @@
   const runCmd = raw => {
     const cmd = raw.trim().toLowerCase();
     if (!cmd) return;
-    termPrint(`<span class="pr">guest@room:~$</span> ${esc(raw)}`);
+    termPrint(`<span class="pr">guest@room ~ %</span>${esc(raw)}`);
     if (cmd.startsWith('open ')) {
-      const t = TAPES.find(x => x.id === cmd.slice(5).replace('.vhs', '').trim());
-      if (t) { setTimeout(() => playTape(t.id), 250); termPrint('inserting tape…'); } else termPrint('no such tape. try ls');
+      const t = BOOKS.find(x => x.id === cmd.slice(5).trim());
+      if (t) { setTimeout(() => playBook(t.id), 250); termPrint('opening…'); } else termPrint('no such item. try ls');
       return;
     }
     const f = TERM[cmd] || TERM[cmd.split(' ')[0]];
-    const out = f ? f() : `command not found: ${esc(cmd.split(' ')[0])}`;
+    const out = f ? f() : `zsh: command not found: ${esc(cmd.split(' ')[0])}`;
     if (out) out.split('\n').forEach(l => termPrint(l));
   };
   const openTerminal = () => {
-    state.ch = 5; markNav(-1);
-    show(`<div class="term"><div id="termOut"></div><form id="termForm" autocomplete="off"><span class="pr">guest@room:~$</span><input id="termIn" spellcheck="false" aria-label="terminal input"></form></div>`, 'CH 05');
-    $('#osdLeft').textContent = '▶ TERMINAL';
-    setTimeout(() => {
-      if (!termLog.length) termPrint('ROOM-OS 1.0 · type <b>help</b>');
-      else $('#termOut').innerHTML = termLog.map(l => `<div>${l}</div>`).join('');
-      $('#termForm').addEventListener('submit', e => { e.preventDefault(); const i = $('#termIn'); runCmd(i.value); i.value = ''; });
-      $('#termIn').focus({ preventScroll: true });
-    }, reduceMotion ? 0 : 200);
+    state.ch = 5; markNav('term');
+    show(`<div class="term"><div id="termOut"></div><form id="termForm" autocomplete="off"><span class="pr">guest@room ~ %</span><input id="termIn" spellcheck="false" aria-label="terminal input"></form></div>`, 'Terminal', { term: true });
+    if (!termLog.length) termPrint('Last login: today on ttys001 · type <b>help</b>');
+    else $('#termOut').innerHTML = termLog.map(l => `<div>${l}</div>`).join('');
+    $('#termForm').addEventListener('submit', e => { e.preventDefault(); const i = $('#termIn'); runCmd(i.value); i.value = ''; });
+    setTimeout(() => $('#termIn') && $('#termIn').focus({ preventScroll: true }), 60);
     if (!state.zoom) setZoom(true);
+  };
+
+  const act = (action, ev) => {
+    const x = ev && ev.clientX ? ev.clientX : innerWidth / 2, y = ev && ev.clientY ? ev.clientY : innerHeight / 2;
+    if (action.startsWith('ch:')) setChannel(+action.slice(3));
+    else if (action.startsWith('book:')) playBook(action.slice(5));
+    else if (action === 'lamp') { setLamp(!state.lamp); say(state.lamp ? 'Light on' : 'Light off', x, y); }
+    else if (action === 'plant') { const l = $('#leaves'); l.classList.remove('wiggle'); void l.getBBox(); l.classList.add('wiggle'); say('Watered', x, y); }
+    else if (action === 'mug') { const s = $('#steam'); s.style.opacity = 0.9; setTimeout(() => (s.style.opacity = ''), 1200); say('Still warm', x, y); }
+    else if (action === 'term') openTerminal();
+    else if (action === 'next') setChannel(state.ch >= 1 && state.ch < 4 ? state.ch + 1 : 1);
+    else if (action === 'zoom') { if (state.ch === null) setChannel(0); else setZoom(!state.zoom); }
+    else if (action === 'sound') { setSound(!state.sound); say(state.sound ? 'Rain and ambient chords, generated live' : 'Quiet', x, y); }
   };
 
   /* ---------------- events ---------------- */
   document.addEventListener('click', e => {
+    if (!e.target.closest('#credits, #creditsBtn')) $('#credits').hidden = true;
     const ch = e.target.closest('[data-ch]');
     if (ch) { e.preventDefault(); setChannel(+ch.dataset.ch); return; }
-    const tape = e.target.closest('[data-tape]');
-    if (tape) { playTape(tape.dataset.tape); return; }
+    if (e.target.closest('[data-term]')) { openTerminal(); return; }
+    const book = e.target.closest('[data-book]');
+    if (book) { playBook(book.dataset.book); return; }
     const hot = e.target.closest('.hot');
     if (hot) { act(hot.dataset.action, e); return; }
     // clicking the room while zoomed steps back out
-    if (state.zoom && !e.target.closest('.screen, .hud-top, .hud-bottom')) setZoom(false);
+    if (state.zoom && !e.target.closest('.screen, .hud-top, .hud-bottom, .credits')) setZoom(false);
   });
   document.addEventListener('keydown', e => {
-    const t = e.target.closest && e.target.closest('.hot, .tape');
-    if (t && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); t.classList.contains('tape') ? playTape(t.dataset.tape) : act(t.dataset.action); return; }
     if (e.target.id === 'termIn') { if (e.key === 'Escape') { e.target.blur(); setZoom(false); } return; }
+    const t = e.target.closest && e.target.closest('.hot, .book');
+    if (t && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); t.classList.contains('book') ? playBook(t.dataset.book) : act(t.dataset.action); return; }
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key.toLowerCase();
     if (/^[0-4]$/.test(k)) setChannel(+k);
@@ -341,77 +310,71 @@
     else if (k === 'm') act('sound');
     else if (k === 't') openTerminal();
     else if (k === 'n') cyclePhase();
-    else if (k === 'r') { rainOn = !rainOn; }
+    else if (k === 'r') rainOn = !rainOn;
     else if (k === 'escape' && state.zoom) setZoom(false);
   });
   $('#soundBtn').addEventListener('click', () => setSound(!state.sound));
   $('#creditsBtn').addEventListener('click', e => { e.stopPropagation(); const c = $('#credits'); c.hidden = !c.hidden; });
-  document.addEventListener('click', e => { if (!e.target.closest('#credits, #creditsBtn')) $('#credits').hidden = true; });
   document.addEventListener('pointerover', e => {
-    const h = e.target.closest('.hot, .tape');
+    const h = e.target.closest('.hot, .book');
     if (h) say(h.dataset.label, e.clientX, e.clientY, 0);
   });
   document.addEventListener('pointermove', e => {
-    if (e.target.closest('.hot, .tape')) { tip.style.left = `${e.clientX}px`; tip.style.top = `${e.clientY}px`; }
+    if (e.target.closest('.hot, .book')) { tip.style.left = `${e.clientX}px`; tip.style.top = `${e.clientY}px`; }
   });
   document.addEventListener('pointerout', e => {
-    if (e.target.closest('.hot, .tape') && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.hot, .tape'))) tip.classList.remove('show');
+    if (e.target.closest('.hot, .book') && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.hot, .book'))) tip.classList.remove('show');
   });
+  addEventListener('hashchange', () => { const n = HASH[location.hash.slice(1)]; if (n && n !== state.ch) setChannel(n); });
 
   /* ---------------- rain on the glass ---------------- */
   const rain = $('#rain'), rctx = rain.getContext('2d');
-  rain.width = 960; rain.height = 540;
-  const drops = Array.from({ length: 260 }, () => ({ x: Math.random() * 1000, y: Math.random() * 540, l: 10 + Math.random() * 18, v: 9 + Math.random() * 9 }));
-  const beads = Array.from({ length: 70 }, () => ({ x: Math.random() * 960, y: Math.random() * 540, r: 1 + Math.random() * 2.4, v: 0 }));
-  let rainOn = true;
+  const RW = 1104, RH = 592;
+  rain.width = RW; rain.height = RH;
+  const drops = Array.from({ length: 240 }, () => ({ x: Math.random() * (RW + 60), y: Math.random() * RH, l: 10 + Math.random() * 18, v: 9 + Math.random() * 9 }));
+  const beads = Array.from({ length: 70 }, () => ({ x: Math.random() * RW, y: Math.random() * RH, r: 1 + Math.random() * 2.2, v: 0 }));
   const drawRain = () => {
-    rctx.clearRect(0, 0, 960, 540);
-    if (!rainOn) { requestAnimationFrame(drawRain); return; }
-    rctx.strokeStyle = 'rgba(200, 190, 255, .28)'; rctx.lineWidth = 1;
-    rctx.beginPath();
-    for (const d of drops) {
-      rctx.moveTo(d.x, d.y); rctx.lineTo(d.x - d.l * 0.18, d.y + d.l);
-      if (!reduceMotion) { d.y += d.v; d.x -= d.v * 0.18; if (d.y > 540) { d.y = -20; d.x = Math.random() * 1000; } }
-    }
-    rctx.stroke();
-    rctx.fillStyle = 'rgba(220, 210, 255, .35)';
-    for (const b of beads) {
-      rctx.beginPath(); rctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); rctx.fill();
-      if (!reduceMotion) {
-        if (b.v === 0 && Math.random() < 0.002) b.v = 0.6 + Math.random() * 1.6;
-        b.y += b.v; if (b.v) b.v *= 0.995;
-        if (b.y > 545) { b.y = Math.random() * 200; b.v = 0; }
+    rctx.clearRect(0, 0, RW, RH);
+    if (rainOn) {
+      rctx.strokeStyle = 'rgba(220, 220, 255, .22)'; rctx.lineWidth = 1;
+      rctx.beginPath();
+      for (const d of drops) {
+        rctx.moveTo(d.x, d.y); rctx.lineTo(d.x - d.l * 0.16, d.y + d.l);
+        if (!reduceMotion) { d.y += d.v; d.x -= d.v * 0.16; if (d.y > RH) { d.y = -20; d.x = Math.random() * (RW + 60); } }
+      }
+      rctx.stroke();
+      rctx.fillStyle = 'rgba(235, 235, 255, .3)';
+      for (const b of beads) {
+        rctx.beginPath(); rctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); rctx.fill();
+        if (!reduceMotion) {
+          if (b.v === 0 && Math.random() < 0.002) b.v = 0.6 + Math.random() * 1.6;
+          b.y += b.v; if (b.v) b.v *= 0.995;
+          if (b.y > RH + 5) { b.y = Math.random() * 200; b.v = 0; }
+        }
       }
     }
     if (!reduceMotion) requestAnimationFrame(drawRain);
   };
   drawRain();
 
-  /* ---------------- LED clock ---------------- */
-  const clock = $('#clock');
-  const tick = () => { const d = new Date(), c = d.getSeconds() % 2 ? ' ' : ':'; clock.textContent = `${String(d.getHours()).padStart(2, '0')}${c}${String(d.getMinutes()).padStart(2, '0')}`; };
-  tick(); setInterval(tick, 1000);
-
-  addEventListener('hashchange', () => { const n = HASH[location.hash.slice(1)]; if (n && n !== state.ch) setChannel(n); });
+  /* ---------------- menu bar clock ---------------- */
+  const clock = $('#mbClock');
+  const tick = () => { clock.textContent = new Date().toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }); };
+  tick(); setInterval(tick, 15000);
 
   /* ---------------- boot ---------------- */
   layout(false);
   setLamp(true);
   const target = HASH[location.hash.slice(1)];
-  if (target) {
-    setChannel(target);
-  } else if (reduceMotion) {
-    setChannel(0, { zoom: false });
-  } else {
-    // a short VHS-style loading screen, then the menu
+  const finishBoot = () => { $('#boot').classList.add('done'); if (target) setChannel(target); else setChannel(0, { zoom: false }); };
+  if (reduceMotion || target) finishBoot();
+  else {
     let p = 0;
-    $('#osdCh').textContent = 'CH 00'; $('#osdLeft').textContent = '▶▶ LOADING';
-    const bar = () => {
-      p = Math.min(100, p + 7 + Math.random() * 9);
-      const n = Math.round(p / 6.25);
-      tv.innerHTML = `<div class="loading"><p>&nbsp;</p><p class="bar">${'█'.repeat(n)}${'░'.repeat(16 - n)} ${Math.round(p)}%</p></div>`;
-      if (p < 100) setTimeout(bar, 90); else setTimeout(() => setChannel(0, { zoom: false }), 250);
+    const step = () => {
+      p = Math.min(100, p + 8 + Math.random() * 12);
+      $('#bootBar').style.width = `${p}%`;
+      if (p < 100) setTimeout(step, 110); else setTimeout(finishBoot, 250);
     };
-    bar();
+    setTimeout(step, 300);
   }
 })();
