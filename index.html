@@ -1,179 +1,305 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ziqi Zhou</title>
-  <meta name="description" content="Ziqi Zhou — personal site & projects.">
+  <meta name="description" content="Ziqi Zhou's room on the internet. Projects, writing and contact, on a CRT on a rainy night.">
   <meta property="og:title" content="Ziqi Zhou">
-  <meta property="og:description" content="Personal site & projects.">
-  <meta property="og:image" content="images/avatar.svg">
+  <meta property="og:description" content="Projects, writing and contact, on a CRT on a rainy night.">
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:opsz,wght@6..72,500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/style.css">
-  <script>
-    // Apply saved theme before paint to avoid a flash.
-    try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/room.css">
 </head>
 <body>
-  <div class="aurora" aria-hidden="true"></div>
-  <!-- custom cursor (desktop only) -->
-  <div class="cursor-dot" aria-hidden="true"></div>
-  <div class="cursor-ring" aria-hidden="true"></div>
-  <canvas id="fx" aria-hidden="true"></canvas>
+  <div class="viewport" id="viewport">
+    <div class="stage" id="stage">
 
-  <header class="nav">
-    <a href="#top" class="logo" data-scramble>~/<span class="accent">ziqi</span></a>
-    <nav>
-      <a href="#about" data-scramble><span class="num">01.</span>about</a>
-      <a href="#projects" data-scramble><span class="num">02.</span>projects</a>
-      <a href="#writing" data-scramble><span class="num">03.</span>writing</a>
-      <a href="#contact" data-scramble><span class="num">04.</span>contact</a>
-      <button class="icon-btn" id="term-open" title="Terminal (press /)">&gt;_</button>
-      <button class="icon-btn" id="theme-toggle" title="Toggle theme">◐</button>
-    </nav>
-  </header>
+      <!-- ===================== THE ROOM (1600 × 1000) ===================== -->
+      <svg class="scene" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#17121f"/><stop offset=".7" stop-color="#211830"/><stop offset="1" stop-color="#2a1e3a"/>
+          </linearGradient>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#07061a"/><stop offset=".55" stop-color="#1a1240"/><stop offset=".85" stop-color="#3a1f63"/><stop offset="1" stop-color="#5a2a6e"/>
+          </linearGradient>
+          <radialGradient id="horizon" cx=".5" cy="1" r=".7">
+            <stop offset="0" stop-color="#ff6fd8" stop-opacity=".35"/><stop offset="1" stop-color="#ff6fd8" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="curtain" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#2a1d3d"/><stop offset=".3" stop-color="#3b2a55"/><stop offset=".55" stop-color="#2c1f40"/><stop offset=".8" stop-color="#3d2b58"/><stop offset="1" stop-color="#2a1d3d"/>
+          </linearGradient>
+          <linearGradient id="deskTop" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3f2c46"/><stop offset=".25" stop-color="#4c3554"/><stop offset="1" stop-color="#5e4365"/>
+          </linearGradient>
+          <pattern id="keys" width="18" height="15" patternUnits="userSpaceOnUse">
+            <rect x="1" y="1" width="15" height="12" rx="2.5" fill="#463f55"/><rect x="1" y="1" width="15" height="3" rx="1.5" fill="#575068"/>
+          </pattern>
+          <pattern id="ruled" width="10" height="12" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="11.5" x2="10" y2="11.5" stroke="#b9aedb" stroke-width="1"/>
+          </pattern>
+          <linearGradient id="deskFront" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2f2138"/><stop offset="1" stop-color="#160f1c"/>
+          </linearGradient>
+          <linearGradient id="crt" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#37323f"/><stop offset="1" stop-color="#211e27"/>
+          </linearGradient>
+          <radialGradient id="lampLight" cx=".5" cy=".5" r=".5">
+            <stop offset="0" stop-color="#ffc58a" stop-opacity=".55"/><stop offset=".6" stop-color="#ff9d6b" stop-opacity=".12"/><stop offset="1" stop-color="#ff9d6b" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="screenGlow" cx=".5" cy=".5" r=".5">
+            <stop offset="0" stop-color="#6d5cff" stop-opacity=".45"/><stop offset="1" stop-color="#6d5cff" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="neon" x="-30%" y="-80%" width="160%" height="260%">
+            <feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <clipPath id="glass"><rect x="320" y="70" width="960" height="540"/></clipPath>
+        </defs>
 
-  <main id="top">
-    <!-- ============ HERO ============ -->
-    <section class="hero">
-      <div class="hero-text">
-        <p class="prompt"><span class="accent">$</span> whoami</p>
-        <h1 class="name glitch" data-text="Ziqi Zhou">Ziqi Zhou</h1>
-        <p class="role"><span class="accent">&gt;</span> <span id="typed"></span><span class="caret">█</span></p>
-        <!-- TODO: 改成你自己的一句话介绍 -->
-        <p class="intro">
-          I build things at the intersection of <em>code</em>, <em>data</em> and <em>curiosity</em>.
-          Currently studying, shipping side projects, and learning in public.
-        </p>
-        <div class="cta">
-          <a class="btn" href="#projects">view projects →</a>
-          <a class="btn ghost" href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener">github</a>
-        </div>
+        <!-- wall -->
+        <rect width="1600" height="1000" fill="url(#wall)"/>
+
+        <!-- window + city (city is generated in room.js into #city) -->
+        <g clip-path="url(#glass)">
+          <rect x="320" y="70" width="960" height="540" fill="url(#sky)"/>
+          <ellipse cx="800" cy="610" rx="700" ry="260" fill="url(#horizon)"/>
+          <g id="city"></g>
+        </g>
+        <g fill="#2b2037">
+          <rect x="290" y="40" width="1020" height="30"/><rect x="290" y="40" width="30" height="600"/><rect x="1280" y="40" width="30" height="600"/>
+          <rect x="793" y="70" width="14" height="560"/><rect x="320" y="228" width="960" height="12"/>
+        </g>
+        <rect x="270" y="626" width="1060" height="24" rx="3" fill="#3b2c49"/>
+        <rect x="270" y="626" width="1060" height="3" fill="#5a456c"/>
+
+        <!-- curtains -->
+        <path d="M220 28 Q250 330 236 660 L350 660 Q330 330 352 28 Z" fill="url(#curtain)"/>
+        <path d="M1248 28 Q1270 330 1250 660 L1380 660 Q1360 330 1382 28 Z" fill="url(#curtain)"/>
+        <rect x="200" y="20" width="1200" height="10" rx="5" fill="#4b3a5e"/>
+
+        <!-- left wall: framed photo (→ about) -->
+        <g class="hot" data-action="ch:1" data-label="photo · about me" tabindex="0">
+          <rect x="44" y="140" width="140" height="176" rx="4" fill="#3a2c45"/>
+          <rect x="54" y="150" width="120" height="156" fill="#120e19"/>
+          <image href="images/avatar.svg" x="58" y="170" width="112" height="112" preserveAspectRatio="xMidYMid slice"/>
+          <text x="114" y="300" text-anchor="middle" font-family="Caveat" font-size="16" fill="#cbb8ff">me</text>
+        </g>
+
+        <!-- right wall: poster (→ newest post) -->
+        <g class="hot" data-action="tape:owner" data-label="poster · one owner, many agents" tabindex="0">
+          <rect x="1408" y="96" width="164" height="236" fill="#5b3fe6"/>
+          <rect x="1408" y="96" width="164" height="236" fill="url(#horizon)" opacity=".6"/>
+          <circle cx="1490" cy="200" r="46" fill="none" stroke="#f0abfc" stroke-width="1.5" opacity=".8"/>
+          <circle cx="1490" cy="200" r="8" fill="#f0abfc"/>
+          <circle cx="1446" cy="170" r="5" fill="#fff"/><circle cx="1534" cy="176" r="5" fill="#fff"/><circle cx="1458" cy="240" r="5" fill="#fff"/><circle cx="1526" cy="236" r="5" fill="#fff"/>
+          <text x="1420" y="128" font-family="Inter" font-weight="700" font-size="22" fill="#fff">ONE OWNER</text>
+          <text x="1420" y="296" font-family="Inter" font-weight="700" font-size="22" fill="#fff">MANY</text>
+          <text x="1420" y="320" font-family="Inter" font-weight="700" font-size="22" fill="#fff">AGENTS</text>
+          <path d="M1404 92 l14 4 -4 10z M1576 92 l-14 4 4 10z" fill="#d9d3c4" opacity=".8"/>
+        </g>
+
+        <!-- glow cast by the screen and the lamp -->
+        <ellipse id="screenGlow" cx="800" cy="520" rx="420" ry="300" fill="url(#screenGlow)"/>
+        <g id="lampGlow">
+          <path d="M352 524 L488 506 L700 860 L120 860 Z" fill="#ffc58a" opacity=".06"/>
+          <ellipse cx="430" cy="720" rx="380" ry="230" fill="url(#lampLight)"/>
+        </g>
+
+        <!-- desk -->
+        <rect x="0" y="660" width="1600" height="210" fill="url(#deskTop)"/>
+        <rect x="0" y="660" width="1600" height="2" fill="#7a5a80" opacity=".5"/>
+        <rect x="0" y="868" width="1600" height="14" fill="#6d5175"/>
+        <rect x="0" y="882" width="1600" height="118" fill="url(#deskFront)"/>
+        <rect x="560" y="910" width="480" height="60" rx="6" fill="#241a2c"/>
+        <rect x="770" y="934" width="60" height="8" rx="4" fill="#4b3a57"/>
+
+        <!-- plant -->
+        <g class="hot" data-action="plant" data-label="monstera · water it" tabindex="0">
+          <g id="leaves" style="transform-origin:170px 600px">
+            <path d="M170 600 C140 520 80 500 40 470 C90 520 120 560 170 600Z" fill="#2f6b52"/>
+            <path d="M170 600 C150 500 170 430 200 390 C200 460 190 540 170 600Z" fill="#3c8565"/>
+            <path d="M172 600 C210 520 270 500 300 480 C260 540 220 580 172 600Z" fill="#2c6249"/>
+            <path d="M168 600 C120 560 70 580 30 560 C80 600 120 610 168 600Z" fill="#3a7a5d"/>
+            <path d="M170 600 C176 520 240 450 262 410 C252 480 220 560 170 600Z" fill="#45946f"/>
+            <path d="M170 600 C130 530 120 450 104 410 C140 460 160 540 170 600Z" fill="#336f55"/>
+          </g>
+          <path d="M112 596 L228 596 L214 700 L126 700 Z" fill="#8a4b63"/>
+          <rect x="106" y="590" width="128" height="16" rx="4" fill="#9c5a74"/>
+        </g>
+
+        <!-- lamp -->
+        <g class="hot" data-action="lamp" data-label="desk lamp · toggle (L)" tabindex="0">
+          <ellipse cx="380" cy="694" rx="62" ry="12" fill="#c2758b"/>
+          <rect x="370" y="676" width="20" height="18" rx="4" fill="#d48a9f"/>
+          <path d="M380 680 L352 560 L410 482" fill="none" stroke="#d48a9f" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="352" cy="560" r="8" fill="#e09cb0"/>
+          <path d="M372 456 Q410 440 446 446 L492 506 Q418 536 336 526 Z" fill="#c9667f"/>
+          <path d="M372 456 Q410 440 446 446 L452 456 Q412 452 378 466 Z" fill="#e08aa0"/>
+          <ellipse cx="414" cy="518" rx="78" ry="11" transform="rotate(-6 414 518)" fill="#ffe2b8" id="bulbEdge"/>
+        </g>
+
+        <!-- mug -->
+        <g class="hot" data-action="mug" data-label="coffee · still warm" tabindex="0">
+          <g id="steam" fill="none" stroke="#e9e3ff" stroke-width="3" stroke-linecap="round" opacity=".35">
+            <path d="M500 610 q-10 -20 0 -40 q10 -20 0 -40"/><path d="M520 614 q-10 -20 0 -40 q10 -20 0 -40"/>
+          </g>
+          <path d="M478 624 L548 624 L542 694 L484 694 Z" fill="#ece6f5"/>
+          <ellipse cx="513" cy="624" rx="35" ry="7" fill="#3a2418"/>
+          <path d="M546 638 q26 0 22 22 q-4 18 -26 16" fill="none" stroke="#ece6f5" stroke-width="8"/>
+          <text x="513" y="668" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#7c3aed">&gt;_</text>
+        </g>
+
+        <!-- CRT + deck -->
+        <ellipse cx="800" cy="700" rx="250" ry="14" fill="#000" opacity=".35"/>
+        <rect x="600" y="656" width="400" height="40" rx="5" fill="#1d1a23"/>
+        <rect x="630" y="672" width="170" height="6" rx="3" fill="#0d0b10"/>
+        <rect x="590" y="296" width="420" height="364" rx="24" fill="url(#crt)"/>
+        <rect x="616" y="320" width="368" height="280" rx="16" fill="#0f0d13"/>
+        <text x="624" y="634" font-family="Inter" font-weight="700" font-size="14" letter-spacing="3" fill="#8f86a3">ZIQI</text>
+        <text x="984" y="634" text-anchor="end" font-family="Inter" font-style="italic" font-size="13" fill="#6f6782">Tokentron</text>
+        <circle cx="964" cy="616" r="4" fill="#a78bfa" id="powerLed"/>
+
+        <!-- sticky note on the CRT -->
+        <g class="hot" data-action="zoom" data-label="sticky note · zoom (Z)" tabindex="0">
+          <rect x="972" y="300" width="74" height="70" fill="#fde68a" transform="rotate(8 1009 335)"/>
+          <text x="1010" y="332" text-anchor="middle" font-family="Caveat" font-size="20" fill="#5b4a1a" transform="rotate(8 1009 335)">press</text>
+          <text x="1010" y="354" text-anchor="middle" font-family="Caveat" font-size="22" fill="#5b4a1a" transform="rotate(8 1009 335)">1 – 4</text>
+        </g>
+
+        <!-- VHS tapes (labels filled in by room.js) -->
+        <g id="tapes"></g>
+
+        <!-- walkman (→ sound) -->
+        <g class="hot" data-action="sound" data-label="walkman · rain + music (M)" tabindex="0">
+          <rect x="1300" y="626" width="120" height="70" rx="8" fill="#3a3448"/>
+          <rect x="1312" y="638" width="96" height="36" rx="4" fill="#15121b"/>
+          <circle cx="1338" cy="656" r="9" fill="none" stroke="#a78bfa" stroke-width="3" id="reelL"/>
+          <circle cx="1382" cy="656" r="9" fill="none" stroke="#a78bfa" stroke-width="3" id="reelR"/>
+          <rect x="1312" y="680" width="22" height="8" rx="2" fill="#f0abfc"/>
+          <rect x="1340" y="680" width="22" height="8" rx="2" fill="#6f6782"/>
+          <path d="M1306 626 C1300 560 1420 560 1414 626" fill="none" stroke="#2a2533" stroke-width="7"/>
+        </g>
+
+        <!-- notebook (→ about) -->
+        <g class="hot" data-action="ch:1" data-label="notebook · about me" tabindex="0">
+          <g transform="rotate(-5 480 800)">
+            <rect x="372" y="752" width="220" height="96" rx="4" fill="#2c2238"/>
+            <rect x="380" y="756" width="102" height="86" fill="#efe9f7"/><rect x="484" y="756" width="102" height="86" fill="#e6dff0"/>
+            <rect x="388" y="764" width="88" height="70" fill="url(#ruled)"/><rect x="492" y="764" width="88" height="70" fill="url(#ruled)"/>
+            <text x="394" y="784" font-family="Caveat" font-size="17" fill="#5b4a8a">hi, i'm ziqi</text>
+            <text x="394" y="806" font-family="Caveat" font-size="15" fill="#5b4a8a">builder, student</text>
+            <text x="498" y="784" font-family="Caveat" font-size="15" fill="#7c3aed">todo:</text>
+            <text x="498" y="804" font-family="Caveat" font-size="14" fill="#5b4a8a">ship the site ✓</text>
+          </g>
+          <rect x="600" y="790" width="110" height="6" rx="3" fill="#f0abfc" transform="rotate(-24 600 790)"/>
+        </g>
+
+        <!-- keyboard (→ menu) -->
+        <g class="hot" data-action="ch:0" data-label="keyboard · menu (0)" tabindex="0">
+          <rect x="652" y="752" width="304" height="70" rx="9" fill="#2a2532"/>
+          <rect x="664" y="760" width="282" height="46" fill="url(#keys)"/>
+          <rect x="736" y="806" width="120" height="10" rx="3" fill="#463f55"/>
+          <path d="M804 752 C804 720 790 706 790 700" fill="none" stroke="#1a1720" stroke-width="4"/>
+        </g>
+
+        <!-- remote (→ next channel) -->
+        <g class="hot" data-action="next" data-label="remote · next channel" tabindex="0">
+          <g transform="rotate(10 1100 800)">
+            <rect x="1030" y="784" width="140" height="32" rx="12" fill="#1b1822"/>
+            <circle cx="1052" cy="800" r="6" fill="#ff5f7a"/>
+            <rect x="1070" y="794" width="12" height="12" rx="3" fill="#3a3448"/><rect x="1088" y="794" width="12" height="12" rx="3" fill="#3a3448"/>
+            <rect x="1106" y="794" width="12" height="12" rx="3" fill="#3a3448"/><rect x="1126" y="792" width="30" height="16" rx="5" fill="#a78bfa"/>
+          </g>
+        </g>
+
+        <!-- darkness when the lamp is off (the screen sits above this) -->
+        <rect id="dark" width="1600" height="1000" fill="#05030a" opacity="0" pointer-events="none"/>
+      </svg>
+
+      <!-- rain on the glass -->
+      <canvas id="rain" class="rain"></canvas>
+
+      <!-- LED clock on the deck -->
+      <div class="clock" id="clock" aria-hidden="true">00:00</div>
+
+      <!-- channel buttons on the CRT -->
+      <div class="crt-buttons" role="group" aria-label="channels">
+        <button data-ch="1" title="about (1)">1</button><button data-ch="2" title="projects (2)">2</button><button data-ch="3" title="writing (3)">3</button><button data-ch="4" title="contact (4)">4</button>
       </div>
 
-      <div class="avatar-wrap tilt">
-        <!-- 把你的照片放到 images/avatar.jpg，然后把下面的 src 改成 images/avatar.jpg -->
-        <img src="images/avatar.svg" alt="Ziqi Zhou" class="avatar">
-        <span class="avatar-frame" aria-hidden="true"></span>
+      <!-- ===================== THE SCREEN ===================== -->
+      <div class="screen" id="screen">
+        <canvas id="static" class="static"></canvas>
+        <div class="osd"><span id="osdLeft">▶ PLAY</span><span id="osdCh">CH 00</span></div>
+        <div class="tv" id="tv" tabindex="-1"></div>
+        <div class="scan" aria-hidden="true"></div>
       </div>
-
-      <a href="#about" class="scroll-hint" aria-label="Scroll down">scroll ↓</a>
-    </section>
-
-    <!-- ============ ABOUT ============ -->
-    <section id="about" class="section reveal">
-      <h2 class="section-title"><span class="num">01.</span>about</h2>
-      <div class="about-grid">
-        <div class="about-text">
-          <!-- TODO: 替换成你的个人介绍 -->
-          <p>Hi, I'm Ziqi. I like turning vague ideas into working software — from quick scripts to full-stack apps and ML experiments.</p>
-          <p>Lately I've been exploring <span class="hl">machine learning</span>, <span class="hl">web development</span> and <span class="hl">developer tools</span>.</p>
-          <p>Outside the terminal: [hobbies go here].</p>
-        </div>
-        <div class="about-side">
-          <pre class="code-card"><code><span class="c">// stack.json</span>
-{
-  <span class="k">"languages"</span>: [<span class="s">"Python"</span>, <span class="s">"TypeScript"</span>, <span class="s">"C++"</span>],
-  <span class="k">"tools"</span>:     [<span class="s">"PyTorch"</span>, <span class="s">"React"</span>, <span class="s">"Git"</span>],
-  <span class="k">"learning"</span>:  <span class="s">"always"</span>
-}</code></pre>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ PROJECTS ============ -->
-    <section id="projects" class="section reveal">
-      <h2 class="section-title"><span class="num">02.</span>projects</h2>
-      <!-- TODO: 每个 <article> 是一个项目卡片，复制/修改即可 -->
-      <div class="cards">
-        <article class="card tilt">
-          <div class="card-top"><span class="folder">⌁</span><a href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener" aria-label="Source">↗</a></div>
-          <h3>Project Alpha</h3>
-          <p>A one-line pitch of what this project does and why it's interesting.</p>
-          <ul class="tags"><li>Python</li><li>PyTorch</li></ul>
-        </article>
-        <article class="card tilt">
-          <div class="card-top"><span class="folder">⌁</span><a href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener" aria-label="Source">↗</a></div>
-          <h3>Project Beta</h3>
-          <p>Full-stack web app. Describe the problem, your approach, and the result.</p>
-          <ul class="tags"><li>React</li><li>Node</li></ul>
-        </article>
-        <article class="card tilt">
-          <div class="card-top"><span class="folder">⌁</span><a href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener" aria-label="Source">↗</a></div>
-          <h3>Project Gamma</h3>
-          <p>A CLI tool / research experiment / hackathon build. Keep it short.</p>
-          <ul class="tags"><li>Rust</li><li>CLI</li></ul>
-        </article>
-        <article class="card tilt">
-          <div class="card-top"><span class="folder">⌁</span><a href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener" aria-label="Source">↗</a></div>
-          <h3>Project Delta</h3>
-          <p>Data visualization or analysis project with a link to a live demo.</p>
-          <ul class="tags"><li>D3</li><li>SQL</li></ul>
-        </article>
-      </div>
-    </section>
-
-    <!-- ============ WRITING ============ -->
-    <section id="writing" class="section reveal">
-      <h2 class="section-title"><span class="num">03.</span>writing</h2>
-      <!-- 新文章：复制一个 <li>，链接到 posts/ 下的新 html -->
-      <ul class="posts">
-        <li class="post-item">
-          <a href="posts/tokenomy.html">
-            <span class="post-date">2026.10.17</span>
-            <div>
-              <h3>Following a Dollar Through the Tokenomy</h3>
-              <p>How neoclouds and token sellers make money, who keeps what along the value chain, and how the money circles back to the labs.</p>
-            </div>
-            <span class="post-arrow">→</span>
-          </a>
-        </li>
-        <li class="post-item">
-          <a href="posts/one-owner-many-agents.html">
-            <span class="post-date">2026.10.17</span>
-            <div>
-              <h3>One Owner, Many Agents</h3>
-              <p>Notes on the future of organizations, and why context flows better when one person working with agents owns the whole loop.</p>
-            </div>
-            <span class="post-arrow">→</span>
-          </a>
-        </li>
-      </ul>
-    </section>
-
-    <!-- ============ CONTACT ============ -->
-    <section id="contact" class="section contact reveal">
-      <h2 class="section-title"><span class="num">04.</span>contact</h2>
-      <p class="contact-lead">My inbox is always open — say hi.</p>
-      <!-- TODO: 换成你的邮箱 / 社交链接 -->
-      <div class="cta">
-        <a class="btn" href="mailto:you@example.com">say hello</a>
-        <a class="btn ghost" href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener">github</a>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <span>© <span id="year"></span> Ziqi Zhou</span>
-    <span class="muted">press <kbd>/</kbd> to open terminal</span>
-  </footer>
-
-  <!-- ============ TERMINAL OVERLAY ============ -->
-  <div class="term" id="term" hidden>
-    <div class="term-win" role="dialog" aria-label="Terminal">
-      <div class="term-bar"><span></span><span></span><span></span><em>ziqi@web: ~</em></div>
-      <div class="term-body" id="term-body"></div>
-      <form class="term-input" id="term-form" autocomplete="off">
-        <label for="term-cmd" class="accent">ziqi@web:~$</label>
-        <input id="term-cmd" spellcheck="false" autocapitalize="off">
-      </form>
     </div>
   </div>
 
-  <script src="assets/main.js"></script>
+  <!-- HUD -->
+  <header class="hud-top">
+    <a href="#" class="brand" data-ch="0">ZIQI ZHOU</a>
+    <nav>
+      <a href="#about" data-ch="1">ABOUT</a><a href="#projects" data-ch="2">PROJECTS</a><a href="#writing" data-ch="3">WRITING</a><a href="#contact" data-ch="4">CONTACT</a>
+    </nav>
+  </header>
+  <div class="hud-bottom">
+    <span class="hint">1–4 channels · Z zoom · L lamp · M sound · Esc back</span>
+    <a class="pill" href="lofi.html">≡ LO-FI</a>
+    <button class="pill" id="soundBtn">♪ SOUND OFF</button>
+  </div>
+  <div class="tip" id="tip" role="status"></div>
+
+  <!-- content for the TV channels (kept in the page so it's readable without JS) -->
+  <template id="ch-0">
+    <h1>ZIQI ZHOU</h1>
+    <p class="dim">student · builder · writing about AI</p>
+    <ol class="menu">
+      <li><button data-ch="1"><b>1</b> ABOUT</button></li>
+      <li><button data-ch="2"><b>2</b> PROJECTS</button></li>
+      <li><button data-ch="3"><b>3</b> WRITING</button></li>
+      <li><button data-ch="4"><b>4</b> CONTACT</button></li>
+    </ol>
+    <p class="dim small">or click things in the room</p>
+  </template>
+  <template id="ch-1">
+    <h2>ABOUT</h2>
+    <!-- TODO: 替换成你的个人介绍 -->
+    <p>Hi, I'm Ziqi. I like turning vague ideas into working software, from quick scripts to full-stack apps and ML experiments.</p>
+    <p>Lately I've been exploring machine learning, developer tools and the economics of AI.</p>
+    <p class="dim">stack: Python · TypeScript · PyTorch · React</p>
+  </template>
+  <template id="ch-2">
+    <h2>PROJECTS</h2>
+    <!-- TODO: 换成你的项目 -->
+    <ul class="list">
+      <li><button data-tape="alpha">▶ PROJECT ALPHA</button><span class="dim">Python · PyTorch</span></li>
+      <li><button data-tape="beta">▶ PROJECT BETA</button><span class="dim">React · Node</span></li>
+      <li><button data-tape="gamma">▶ PROJECT GAMMA</button><span class="dim">Rust · CLI</span></li>
+      <li><button data-tape="delta">▶ PROJECT DELTA</button><span class="dim">D3 · SQL</span></li>
+    </ul>
+    <p class="dim small">each project is also a tape on the desk</p>
+  </template>
+  <template id="ch-3">
+    <h2>WRITING</h2>
+    <ul class="list">
+      <li><a href="posts/tokenomy.html">▶ FOLLOWING A DOLLAR THROUGH THE TOKENOMY</a><span class="dim">2026.10.17 · 15 min</span></li>
+      <li><a href="posts/one-owner-many-agents.html">▶ ONE OWNER, MANY AGENTS</a><span class="dim">2026.10.17 · 9 min</span></li>
+    </ul>
+  </template>
+  <template id="ch-4">
+    <h2>CONTACT</h2>
+    <!-- TODO: 换成你的邮箱 -->
+    <ul class="list">
+      <li><a href="mailto:you@example.com">▶ EMAIL</a><span class="dim">you@example.com</span></li>
+      <li><a href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener">▶ GITHUB</a><span class="dim">ziqi-zhou02</span></li>
+    </ul>
+  </template>
+
+  <script src="assets/room.js"></script>
 </body>
 </html>

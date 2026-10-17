@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ziqi Zhou</title>
+  <meta name="description" content="Ziqi Zhou — personal site & projects.">
+  <meta property="og:title" content="Ziqi Zhou">
+  <meta property="og:description" content="Personal site & projects.">
+  <meta property="og:image" content="images/avatar.svg">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:opsz,wght@6..72,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <script>
+    // Apply saved theme before paint to avoid a flash.
+    try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+  <!-- custom cursor (desktop only) -->
+  <div class="cursor-dot" aria-hidden="true"></div>
+  <div class="cursor-ring" aria-hidden="true"></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <header class="nav">
+    <a href="#top" class="logo" data-scramble>~/<span class="accent">ziqi</span></a>
+    <nav>
+      <a href="#about" data-scramble><span class="num">01.</span>about</a>
+      <a href="#projects" data-scramble><span class="num">02.</span>projects</a>
+      <a href="#writing" data-scramble><span class="num">03.</span>writing</a>
+      <a href="#contact" data-scramble><span class="num">04.</span>contact</a>
+      <a href="./" data-scramble><span class="num">↗</span>room</a>
+      <button class="icon-btn" id="term-open" title="Terminal (press /)">&gt;_</button>
+      <button class="icon-btn" id="theme-toggle" title="Toggle theme">◐</button>
+    </nav>
+  </header>
+
+  <main id="top">
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="hero-text">
+        <p class="prompt"><span class="accent">$</span> whoami</p>
+        <h1 class="name glitch" data-text="Ziqi Zhou">Ziqi Zhou</h1>
+        <p class="role"><span class="accent">&gt;</span> <span id="typed"></span><span class="caret">█</span></p>
+        <!-- TODO: 改成你自己的一句话介绍 -->
+        <p class="intro">
+          I build things at the intersection of <em>code</em>, <em>data</em> and <em>curiosity</em>.
+          Currently studying, shipping side projects, and learning in public.
+        </p>
+        <div class="cta">
+          <a class="btn" href="#projects">view projects →</a>
+          <a class="btn ghost" href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener">github</a>
+        </div>
+      </div>
+
+      <div class="avatar-wrap tilt">
+        <!-- 把你的照片放到 images/avatar.jpg，然后把下面的 src 改成 images/avatar.jpg -->
+        <img src="images/avatar.svg" alt="Ziqi Zhou" class="avatar">
+        <span class="avatar-frame" aria-hidden="true"></span>
+      </div>
+
+      <a href="#about" class="scroll-hint" aria-label="Scroll down">scroll ↓</a>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section id="about" class="section reveal">
+      <h2 class="section-title"><span class="num">01.</span>about</h2>
+      <div class="about-grid">
+        <div class="about-text">
+          <!-- TODO: 替换成你的个人介绍 -->
+          <p>Hi, I'm Ziqi. I like turning vague ideas into working software — from quick scripts to full-stack apps and ML experiments.</p>
+          <p>Lately I've been exploring <span class="hl">machine learning</span>, <span class="hl">web development</span> and <span class="hl">developer tools</span>.</p>
+          <p>Outside the terminal: [hobbies go here].</p>
+        </div>
+        <div class="about-side">
+          <pre class="code-card"><code><span class="c">// stack.json</span>
+{
+  <span class="k">"languages"</span>: [<span class="s">"Python"</span>, <span class="s">"TypeScript"</span>, <span class="s">"C++"</span>],
+  <span class="k">"tools"</span>:     [<span class="s">"PyTorch"</span>, <span class="s">"React"</span>, <span class="s">"Git"</span>],
+  <span class="k">"learning"</span>:  <span class="s">"always"</span>
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PROJECTS ============ -->
+    <section id="projects" class="section reveal">
+      <h2 class="section-title"><span class="num">02.</span>projects</h2>
+      <!-- TODO: 每个 <article> 是一个项目卡片，复制/修改即可 -->
+      <div class="cards">
+        <article class="card tilt">
+          <div class="card-top"><span class="folder">⌁</span><a href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener" aria-label="Source">↗</a></div>
+          <h3>Project Alpha</h3>
+          <p>A one-line pitch of what this project does and why it's interesting.</p>
+          <ul class="tags"><li>Python</li><li>PyTorch</li></ul>
+        </article>
+        <article class="card tilt">
+          <div class="card-top"><span class="folder">⌁</span><a href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener" aria-label="Source">↗</a></div>
+          <h3>Project Beta</h3>
+          <p>Full-stack web app. Describe the problem, your approach, and the result.</p>
+          <ul class="tags"><li>React</li><li>Node</li></ul>
+        </article>
+        <article class="card tilt">
+          <div class="card-top"><span class="folder">⌁</span><a href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener" aria-label="Source">↗</a></div>
+          <h3>Project Gamma</h3>
+          <p>A CLI tool / research experiment / hackathon build. Keep it short.</p>
+          <ul class="tags"><li>Rust</li><li>CLI</li></ul>
+        </article>
+        <article class="card tilt">
+          <div class="card-top"><span class="folder">⌁</span><a href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener" aria-label="Source">↗</a></div>
+          <h3>Project Delta</h3>
+          <p>Data visualization or analysis project with a link to a live demo.</p>
+          <ul class="tags"><li>D3</li><li>SQL</li></ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ WRITING ============ -->
+    <section id="writing" class="section reveal">
+      <h2 class="section-title"><span class="num">03.</span>writing</h2>
+      <!-- 新文章：复制一个 <li>，链接到 posts/ 下的新 html -->
+      <ul class="posts">
+        <li class="post-item">
+          <a href="posts/tokenomy.html">
+            <span class="post-date">2026.10.17</span>
+            <div>
+              <h3>Following a Dollar Through the Tokenomy</h3>
+              <p>How neoclouds and token sellers make money, who keeps what along the value chain, and how the money circles back to the labs.</p>
+            </div>
+            <span class="post-arrow">→</span>
+          </a>
+        </li>
+        <li class="post-item">
+          <a href="posts/one-owner-many-agents.html">
+            <span class="post-date">2026.10.17</span>
+            <div>
+              <h3>One Owner, Many Agents</h3>
+              <p>Notes on the future of organizations, and why context flows better when one person working with agents owns the whole loop.</p>
+            </div>
+            <span class="post-arrow">→</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section id="contact" class="section contact reveal">
+      <h2 class="section-title"><span class="num">04.</span>contact</h2>
+      <p class="contact-lead">My inbox is always open — say hi.</p>
+      <!-- TODO: 换成你的邮箱 / 社交链接 -->
+      <div class="cta">
+        <a class="btn" href="mailto:you@example.com">say hello</a>
+        <a class="btn ghost" href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener">github</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>© <span id="year"></span> Ziqi Zhou</span>
+    <span class="muted">press <kbd>/</kbd> to open terminal</span>
+  </footer>
+
+  <!-- ============ TERMINAL OVERLAY ============ -->
+  <div class="term" id="term" hidden>
+    <div class="term-win" role="dialog" aria-label="Terminal">
+      <div class="term-bar"><span></span><span></span><span></span><em>ziqi@web: ~</em></div>
+      <div class="term-body" id="term-body"></div>
+      <form class="term-input" id="term-form" autocomplete="off">
+        <label for="term-cmd" class="accent">ziqi@web:~$</label>
+        <input id="term-cmd" spellcheck="false" autocapitalize="off">
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/main.js"></script>
+</body>
+</html>

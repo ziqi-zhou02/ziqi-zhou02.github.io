@@ -7,6 +7,12 @@ Design inspired by [bchiang7/v4](https://github.com/bchiang7/v4) and
 [lilweb-template](https://github.com/Cod-e-Codes/lilweb-template); blog layout inspired by
 Thinking Machines' *Connectionism* and Lilian Weng's *Lil'Log*. Code written from scratch.
 
+## 两个版本
+
+- `index.html` 是“房间”版：一张夜晚雨天的书桌，CRT 电视就是导航（频道 1–4），桌上的 VHS 磁带是项目和文章，台灯、植物、咖啡、键盘、遥控器、随身听都可以点。
+- `lofi.html` 是原来的极简版。
+- 房间的内容在 `index.html` 底部的 `<template id="ch-N">` 里，磁带数据在 `assets/room.js` 顶部的 `TAPES`。
+
 ## 怎么改内容
 
 | 想改什么 | 改哪里 |
