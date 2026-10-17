@@ -39,39 +39,39 @@
       <span>Oct 17, 2026</span><span>·</span><span>~9 min read</span><span>·</span><span>Ziqi Zhou</span><span>·</span><span class="tag">#org-design #agents</span>
     </div>
     <h1>One Owner, Many Agents</h1>
-    <p class="dek">Notes on the future of organizations: what happens to the org chart when one person, working with agents, can cover product, modeling and engineering?</p>
+    <p class="dek">Notes on how organizations change when one person, working with agents, can cover product, modeling and engineering.</p>
 
     <div class="tldr">
       <b>TL;DR</b>
       <ul>
-        <li>Functional teams were built because implementation hours were scarce. Handoffs were the price we paid.</li>
-        <li>With agents, one owner can run a scoped project end to end. Context stays inside one loop instead of leaking at each handoff.</li>
-        <li>Large products get reorganized into owner-led slices that sit on a thin shared platform.</li>
-        <li>People coordinate through contracts and written decisions, not relays. Agents share a small, curated context layer.</li>
+        <li>Functional teams exist because implementation time used to be scarce, and handoffs were the cost of that arrangement.</li>
+        <li>With agents, one owner can run a scoped project end to end, so context stays in one loop instead of leaking at each handoff.</li>
+        <li>Large products can be split into slices that each have one owner, built on a thin shared platform.</li>
+        <li>People coordinate through contracts and written decisions, and agents work from a small shared context layer.</li>
       </ul>
     </div>
 
     <nav class="tldr" aria-label="Table of contents">
       <b>CONTENTS</b>
       <ul>
-        <li><a href="#old-shape">The old shape: built for handoffs</a></li>
-        <li><a href="#new-shape">The new shape: one owner, many agents</a></li>
-        <li><a href="#context">Why context flows better</a></li>
-        <li><a href="#reorg">Reorganizing a large product</a></li>
-        <li><a href="#humans">How people should work together</a></li>
-        <li><a href="#agents">What agents need to share</a></li>
-        <li><a href="#risks">What could go wrong</a></li>
+        <li><a href="#old-shape">Functional teams were built around handoffs</a></li>
+        <li><a href="#new-shape">One owner can now run a whole project</a></li>
+        <li><a href="#context">Context survives better inside one loop</a></li>
+        <li><a href="#reorg">Large products split into slices by outcome</a></li>
+        <li><a href="#humans">People coordinate through contracts and written decisions</a></li>
+        <li><a href="#agents">Agents share a small, curated context layer</a></li>
+        <li><a href="#risks">The model has real failure modes</a></li>
         <li><a href="#citation">Citation</a></li>
       </ul>
     </nav>
 
     <div class="prose">
-      <p>For most of the history of software, the org chart has been a workaround for one hard constraint. Nobody can hold the whole stack in their head and also have the hours to build it. So we split work by function (product, algorithms, frontend, backend) and paid for that split with handoffs.</p>
-      <p>Agents loosen that constraint. If one person can direct agents that write the training code, the API and the UI, the basic unit of organization shifts from the <em>function</em> to the <em>owner</em>. This post sketches what that looks like, why it works (mostly: context), and what has to change around it. Treat it as a set of working hypotheses, not a report.</p>
+      <p>For most of the history of software, the org chart has worked around one constraint. Nobody could hold the whole stack in their head and also have the hours to build it, so we split the work by function into product, algorithms, frontend and backend, and accepted handoffs as the cost.</p>
+      <p>Agents relax that constraint. If one person can direct agents that write the training code, the API and the UI, the natural unit of organization moves from the <em>function</em> to the <em>owner</em>. In this post I sketch what that looks like, why I think it works, and what has to change around it. These are working hypotheses rather than findings.</p>
 
-      <h2 id="old-shape"><span class="n">01</span>The old shape: built for handoffs</h2>
-      <p>Picture a typical ML product team: one PM, a designer, three algorithm engineers, one frontend engineer and one backend engineer. The PM talks to users and writes a spec. The algorithm engineers turn the spec into experiments. Backend wraps the model in an API, and frontend ships the UI. Every arrow in that pipeline is a translation, and every translation loses something.</p>
-      <p>Brooks pointed out the cost fifty years ago: <em>n</em> people have <em>n(n−1)/2</em> potential communication channels (Brooks, 1975). Seven people already have 21. Much of a PM's week goes into keeping those channels in sync, through standups, spec reviews and "quick syncs."</p>
+      <h2 id="old-shape"><span class="n">01</span>Functional teams were built around handoffs</h2>
+      <p>A typical ML product team has one PM, a designer, three algorithm engineers, a frontend engineer and a backend engineer. The PM talks to users and writes a spec, the algorithm engineers turn it into experiments, backend wraps the model in an API, and frontend ships the UI. Each step in that pipeline is a translation, and each translation drops some detail.</p>
+      <p>Brooks described the cost fifty years ago. A team of <em>n</em> people has <em>n(n−1)/2</em> possible communication channels (Brooks, 1975), so seven people already have 21. A good part of a PM's week goes into keeping those channels in sync through standups, spec reviews and quick check-ins.</p>
     </div>
 
     <figure class="fig">
@@ -122,22 +122,22 @@
           <text x="550" y="280" text-anchor="middle" class="d-text">1 owner · 4 agents · 1 context</text>
         </svg>
       </div>
-      <figcaption><b>Fig. 1</b>Left: a functional team of seven has 21 possible channels, and intent reaches engineers only through the PM. Right: one owner briefs and reviews agents (pink) that all read from the same context, so there's only one thing to keep in sync.</figcaption>
+      <figcaption><b>Fig. 1</b>Left, a functional team of seven has 21 possible channels, and intent reaches engineers only through the PM. Right, one owner briefs and reviews agents (pink) that read from the same context, so there is only one thing to keep in sync.</figcaption>
     </figure>
 
     <div class="prose">
-      <p>The ratio of many algorithm engineers to one PM made sense when experiments were expensive: a PM's judgement was cheap compared with the engineering hours needed to test it. That ratio is flipping. When agents run the experiments and write the glue code, implementation hours stop being the bottleneck. The bottleneck becomes judgement: what to build, and whether it's good.</p>
+      <p>The ratio of many engineers to one PM made sense when experiments were expensive. A PM's judgement cost little compared with the engineering time needed to test it. That ratio is now flipping. When agents run experiments and write glue code, implementation time stops being the bottleneck, and judgement about what to build and whether it is good becomes the scarce input.</p>
 
-      <h2 id="new-shape"><span class="n">02</span>The new shape: one owner, many agents</h2>
-      <p>The alternative that's emerging: one person owns a project end to end. The owner acts as PM, algorithm engineer and full-stack engineer. That isn't because they're an expert at everything. Agents do most of the execution in each role, and the owner supplies direction, taste and review.</p>
-      <p>This is already partly visible. Anthropic describes data scientists with little JavaScript experience building full React apps to visualize model performance, and non-engineering teams building their own tools (Anthropic, 2025a). Amazon's <em>single-threaded owner</em>, one leader focused on one thing (Bryar &amp; Carr, 2021), is being pushed down from the leadership level to the individual contributor.</p>
+      <h2 id="new-shape"><span class="n">02</span>One owner can now run a whole project</h2>
+      <p>The alternative is to give one person ownership of a project from end to end. That person acts as PM, algorithm engineer and full-stack engineer. They are not an expert in all of these roles. Agents do most of the execution in each one, and the owner provides direction, taste and review.</p>
+      <p>Parts of this are already visible. Anthropic describes data scientists with little JavaScript experience building full React apps to visualize model performance, and non-engineering teams building their own internal tools (Anthropic, 2025a). Amazon's idea of a <em>single-threaded owner</em>, one leader focused on one thing (Bryar &amp; Carr, 2021), is moving down from senior leaders to individual contributors.</p>
     </div>
 
-    <blockquote class="pull">The scarce resource is no longer implementation hours. It's judgement, and judgement doesn't survive a handoff well.</blockquote>
+    <blockquote class="pull">The scarce resource is shifting from implementation hours to judgement, and judgement does not survive a handoff very well.</blockquote>
 
     <div class="prose">
-      <h2 id="context"><span class="n">03</span>Why context flows better</h2>
-      <p>The main argument for the owner model isn't speed. It's <strong>context fidelity</strong>. Figure 2 is a cartoon of the difference.</p>
+      <h2 id="context"><span class="n">03</span>Context survives better inside one loop</h2>
+      <p>The strongest argument for the owner model is about context more than speed. Figure 2 is a cartoon of the difference.</p>
     </div>
 
     <figure class="fig">
@@ -164,7 +164,7 @@
           <line x1="415" y1="52" x2="459" y2="52" class="d-line" marker-end="url(#f2a)"/><text x="437" y="44" text-anchor="middle" class="d-muted">ticket</text>
           <line x1="569" y1="52" x2="613" y2="52" class="d-line" marker-end="url(#f2a)"/><text x="591" y="44" text-anchor="middle" class="d-muted">PR</text>
           <path d="M668 92 C668 120 52 120 52 94" class="d-line" marker-end="url(#f2a)"/>
-          <text x="360" y="128" text-anchor="middle" class="d-muted">feedback: weeks</text>
+          <text x="360" y="128" text-anchor="middle" class="d-muted">feedback in weeks</text>
 
           <text x="0" y="160" class="d-head">Owner loop</text>
           <text x="88" y="160" class="d-muted">one head + one shared context</text>
@@ -181,22 +181,22 @@
           <line x1="312" y1="194" x2="408" y2="194" class="d-accent-line" marker-end="url(#f2h)"/><text x="360" y="186" text-anchor="middle" class="d-muted">brief</text>
           <line x1="518" y1="194" x2="613" y2="194" class="d-accent-line" marker-end="url(#f2h)"/><text x="565.5" y="186" text-anchor="middle" class="d-muted">review</text>
           <path d="M668 234 C668 258 257 258 257 232" class="d-accent-line" marker-end="url(#f2h)"/>
-          <text x="463" y="262" text-anchor="middle" class="d-muted">feedback: hours</text>
+          <text x="463" y="262" text-anchor="middle" class="d-muted">feedback in hours</text>
         </svg>
       </div>
-      <figcaption><b>Fig. 2</b>An illustrative sketch, not measured data. The bar under each step shows roughly how much of the original user context is still intact there. The owner loop has fewer translations and a much shorter feedback cycle.</figcaption>
+      <figcaption><b>Fig. 2</b>An illustrative sketch rather than measured data. The bar under each step shows roughly how much of the original user context is still intact. The owner loop has fewer translations and a much shorter feedback cycle.</figcaption>
     </figure>
 
     <div class="prose">
       <ul>
-        <li><strong>No translation layer.</strong> The person who heard the user is the person who picks the loss function. A nuance like "users tolerate latency here, but hate confident wrong answers" doesn't have to survive a spec.</li>
-        <li><strong>Decisions and implementation share a loop.</strong> When an experiment surprises you, the product plan can change within the hour, with no re-prioritization meeting.</li>
-        <li><strong>Agents get better briefs.</strong> Anthropic found that subagents given vague task descriptions duplicated each other's work. The fix was a clear objective, an output format and explicit boundaries (Anthropic, 2025b). The person best placed to write that brief is the one holding the intent.</li>
+        <li><strong>No translation layer.</strong> The person who talked to the user also chooses the loss function. A detail like "users tolerate latency on this page but hate confident wrong answers" never has to survive a spec.</li>
+        <li><strong>Decisions and implementation share a loop.</strong> When an experiment surprises the owner, the product plan can change within the hour without a reprioritization meeting.</li>
+        <li><strong>Agents get better briefs.</strong> In Anthropic's multi-agent research system, subagents given vague task descriptions duplicated each other's work, and clear objectives, output formats and boundaries fixed the problem (Anthropic, 2025b). The person holding the intent is the one best placed to write those briefs.</li>
       </ul>
-      <p>You can read this as Conway's law run in reverse. If systems mirror the communication structure of the teams that build them (Conway, 1968), a product built inside one loop has fewer seams for errors to leak through.</p>
+      <p>This is Conway's law in reverse. If systems mirror the communication structure of the teams that build them (Conway, 1968), a product built inside one loop has fewer seams for errors to leak through.</p>
 
-      <h2 id="reorg"><span class="n">04</span>Reorganizing a large product</h2>
-      <p>One person can't own a search engine. Large products still need many people, so the real question is where to cut. My answer: cut by <strong>outcome</strong>, not by <strong>function</strong>.</p>
+      <h2 id="reorg"><span class="n">04</span>Large products split into slices by outcome</h2>
+      <p>One person cannot own a search engine, so large products still need many people. The real design question is where to draw the lines, and I think the answer is to cut by <strong>outcome</strong> rather than by <strong>function</strong>.</p>
     </div>
 
     <figure class="fig">
@@ -249,33 +249,33 @@
             <line x1="455" y1="102" x2="465" y2="102"/><line x1="540" y1="102" x2="550" y2="102"/><line x1="625" y1="102" x2="635" y2="102"/>
           </g>
           <rect x="380" y="178" width="330" height="34" rx="8" class="d-box"/>
-          <text x="545" y="199" text-anchor="middle" class="d-text">platform: infra · data · evals · design</text>
+          <text x="545" y="199" text-anchor="middle" class="d-text">shared platform · infra · data · evals</text>
           <text x="545" y="238" text-anchor="middle" class="d-text">one feature stays in one slice</text>
         </svg>
       </div>
-      <figcaption><b>Fig. 3</b>Left: with functional layers, every feature has to pass through every team. Right: outcome slices give each feature one owner (dashed links mark the contracts between slices), all sitting on a thin shared platform.</figcaption>
+      <figcaption><b>Fig. 3</b>With functional layers (left), every feature has to pass through every team. Outcome slices (right) give each feature one owner, with dashed links for the contracts between slices, on top of a thin shared platform.</figcaption>
     </figure>
 
     <div class="prose">
       <ul>
-        <li><strong>Slices.</strong> Each slice (search ranking, recommendations, checkout, onboarding) gets one owner, a fleet of agents, and one metric the owner is accountable for. This is close to the <em>stream-aligned team</em> in Team Topologies (Skelton &amp; Pais, 2019), shrunk down to one person.</li>
-        <li><strong>A thin platform.</strong> Shared infrastructure, data, eval harnesses and the design system. The platform's customers now include agents, which means good docs, stable APIs and fast sandboxes matter more than ever.</li>
-        <li><strong>Fewer managers who route work, more who review it.</strong> Managers spend less time routing work and more time reviewing quality, pairing owners and setting the bar.</li>
-        <li><strong>Seams are contracts.</strong> Wherever two slices meet, the interface is explicit: an API schema, an event format, a shared metric definition.</li>
+        <li><strong>Slices.</strong> Each slice, such as search ranking, recommendations, checkout or onboarding, has one owner, a set of agents and one metric the owner answers for. This is close to the <em>stream-aligned team</em> in Team Topologies (Skelton &amp; Pais, 2019), shrunk to a single person.</li>
+        <li><strong>A thin platform.</strong> Infrastructure, data, eval harnesses and the design system are shared. Agents are now among the platform's main users, so clear docs, stable APIs and fast sandboxes matter more than before.</li>
+        <li><strong>Managers who review.</strong> Managers spend less time routing work and more time reviewing quality, pairing owners and setting the bar.</li>
+        <li><strong>Contracts at the seams.</strong> Where two slices meet, the interface is written down as an API schema, an event format or a shared metric definition.</li>
       </ul>
 
-      <h2 id="humans"><span class="n">05</span>How people should work together</h2>
-      <p>When each person owns more, people coordinate less often, but each coordination point matters more. A few norms seem to help:</p>
+      <h2 id="humans"><span class="n">05</span>People coordinate through contracts and written decisions</h2>
+      <p>When each person owns more, people coordinate less often, but each point of coordination carries more weight. A few norms seem to help.</p>
       <ul>
         <li><strong>Contracts over meetings.</strong> Agree on interfaces and metrics in writing, then work independently.</li>
-        <li><strong>Write decisions down.</strong> A short decision log (what we chose, why, and what we rejected) can be read by colleagues <em>and</em> by agents.</li>
-        <li><strong>Review, don't relay.</strong> People add value by reviewing each other's work, not by carrying messages between other people.</li>
-        <li><strong>Demo early, async.</strong> A two-minute recorded demo beats a status meeting.</li>
-        <li><strong>Pair at the seams.</strong> When two slices have to change together, the two owners pair for a day instead of coordinating for a week.</li>
+        <li><strong>Written decisions.</strong> A short decision log that records what was chosen, why, and what was rejected can be read by colleagues and by agents.</li>
+        <li><strong>Review instead of relay.</strong> People add value by reviewing each other's work, and very little by passing messages along.</li>
+        <li><strong>Early async demos.</strong> A two-minute recorded demo usually replaces a status meeting.</li>
+        <li><strong>Pairing at the seams.</strong> When two slices have to change together, the two owners pair for a day instead of coordinating for a week.</li>
       </ul>
 
-      <h2 id="agents"><span class="n">06</span>What agents need to share</h2>
-      <p>There's a tension here. Cognition argues that agents should share full context and full traces, because "actions carry implicit decisions," and decisions made with partial context tend to conflict (Yan, 2025). Anthropic, meanwhile, treats context as a finite resource to be curated down to the smallest high-signal set (Anthropic, 2025c). One way to reconcile the two: <strong>within a slice, share everything; across slices, share a small, distilled layer.</strong></p>
+      <h2 id="agents"><span class="n">06</span>Agents share a small, curated context layer</h2>
+      <p>There is a tension in the current advice. Cognition argues that agents should share full context and full traces, because actions carry implicit decisions and decisions made with partial context tend to conflict (Yan, 2025). Anthropic treats context as a finite resource that should be curated down to the smallest high-signal set (Anthropic, 2025c). I think both are right at different scales. Within a slice agents should share everything, and across slices they should share a small, distilled layer.</p>
     </div>
 
     <figure class="fig">
@@ -325,28 +325,28 @@
           <text x="650" y="202" text-anchor="middle" class="d-muted">what we tried,</text><text x="650" y="218" text-anchor="middle" class="d-muted">what failed</text>
         </svg>
       </div>
-      <figcaption><b>Fig. 4</b>Owners coordinate with each other through explicit contracts (pink). Their agents read from and write to a small shared layer. Raw traces stay inside each slice; only distilled artifacts cross over.</figcaption>
+      <figcaption><b>Fig. 4</b>Owners coordinate with each other through explicit contracts (pink), and their agents read from and write to a small shared layer. Raw traces stay inside each slice, and only distilled artifacts cross over.</figcaption>
     </figure>
 
     <div class="prose">
-      <p>In practice, the six slots break down like this:</p>
+      <p>The layer in Figure 4 has six parts.</p>
       <ul>
-        <li><strong>Intent:</strong> the goal, the non-goals, and who the user is. Without it, agents optimize the wrong thing very efficiently.</li>
-        <li><strong>Decisions:</strong> what was decided and why, including the alternatives that were rejected, so nobody has to reopen them.</li>
-        <li><strong>Contracts:</strong> API schemas, event formats, metric definitions. This is the only part another slice is allowed to depend on.</li>
-        <li><strong>Evals:</strong> the shared definition of "good." If two slices measure quality differently, they will drift apart.</li>
-        <li><strong>Conventions:</strong> coding style and repo rules, often written in a file agents read first (e.g. <code>CLAUDE.md</code>).</li>
-        <li><strong>Memory:</strong> what was tried and didn't work. It's the cheapest way to stop an agent from repeating someone else's dead end.</li>
+        <li><strong>Intent.</strong> The goal, the non-goals and the intended user. Without it, agents optimize the wrong thing very efficiently.</li>
+        <li><strong>Decisions.</strong> What was decided and why, including rejected alternatives, so nobody has to reopen them.</li>
+        <li><strong>Contracts.</strong> API schemas, event formats and metric definitions. This is the only part another slice should depend on.</li>
+        <li><strong>Evals.</strong> The shared definition of good. Slices that measure quality differently drift apart.</li>
+        <li><strong>Conventions.</strong> Coding style and repo rules, often kept in a file that agents read first, such as <code>CLAUDE.md</code>.</li>
+        <li><strong>Memory.</strong> A record of what was tried and failed, which is the cheapest way to stop an agent from repeating someone else's dead end.</li>
       </ul>
 
-      <h2 id="risks"><span class="n">07</span>What could go wrong</h2>
+      <h2 id="risks"><span class="n">07</span>The model has real failure modes</h2>
       <ul>
-        <li><strong>A bus factor of one.</strong> If the owner disappears, the context goes with them. Mitigations: the decision log, and a buddy owner who reviews the slice every week.</li>
-        <li><strong>Breadth without depth.</strong> An owner can ship a model they don't really understand. Keep deep experts as a shared review resource, not as a stage in the pipeline.</li>
-        <li><strong>Burnout.</strong> Owning everything is heavy. Scope slices so one person can actually carry them, and split a slice before it breaks its owner.</li>
-        <li><strong>Drift across slices.</strong> Shared evals and the design system are the guardrails. Invest in them first.</li>
+        <li><strong>One person as a single point of failure.</strong> If the owner leaves, the context leaves with them. A decision log and a buddy owner who reviews the slice each week reduce the risk.</li>
+        <li><strong>Breadth without depth.</strong> An owner can ship a model they do not fully understand. Deep experts are still needed, as shared reviewers rather than as a step in the pipeline.</li>
+        <li><strong>Burnout.</strong> Owning everything is heavy. Slices should be scoped so that one person can carry them, and split before they break their owner.</li>
+        <li><strong>Drift across slices.</strong> Shared evals and the design system act as guardrails, and they are worth investing in first.</li>
       </ul>
-      <p>The org chart is starting to look like a software architecture. Owners are services, contracts are APIs, and the shared context layer is the database. That may not be a coincidence: we're finally organizing people the way we learned to organize code. I'd like to revisit these notes in a year and see which of them held up.</p>
+      <p>The org chart is starting to resemble a software architecture, with owners as services, contracts as APIs and the shared context layer as the database. I don't think that is a coincidence, since we are organizing people in a way we already learned to organize code. I plan to revisit these notes in a year and see which of them held up.</p>
     </div>
 
     <section class="sources" id="citation">
