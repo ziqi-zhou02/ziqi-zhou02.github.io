@@ -4,8 +4,10 @@ src = '/tmp/claude-0/b3d/final'; dst = '/home/user/ziqi-zhou02.github.io/assets/
 os.makedirs(dst, exist_ok=True)
 for v, name in [('lamp_on', 'night_on'), ('lamp_off', 'night_off')]:
     im = Image.open(f'{src}/render_{v}.png').convert('RGB')
-    im.save(f'{dst}/{name}.jpg', quality=84, optimize=True, progressive=True)
-    print(name, os.path.getsize(f'{dst}/{name}.jpg') // 1024, 'KB')
+    im.save(f'{dst}/{name}.jpg', quality=82, optimize=True, progressive=True)
+    im.save(f'{dst}/{name}.webp', quality=78, method=6)
+    im.save(f'{dst}/{name}.avif', quality=55, speed=4)
+    print(name, {e: os.path.getsize(f'{dst}/{name}.{e}') // 1024 for e in ('jpg', 'webp', 'avif')}, 'KB')
 m = np.asarray(Image.open(f'{src}/mask.png').convert('L'), dtype=np.float32) / 255
 a = (np.clip((m - 0.05) / 0.9, 0, 1) * 255).astype(np.uint8)
 out = Image.new('LA', (a.shape[1], a.shape[0])); out.putdata([(255, int(x)) for x in a.ravel()])

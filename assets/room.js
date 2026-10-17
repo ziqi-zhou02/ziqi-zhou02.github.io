@@ -117,8 +117,11 @@
   }
 
   /* ---------------- the screen ---------------- */
-  const show = (html, title, { term = false } = {}) => {
+  const show = (html, title, { term = false, wide = false } = {}) => {
     tv.innerHTML = html; tv.scrollTop = 0;
+    win.classList.toggle('wide', wide);
+    const today = tv.querySelector('[data-today]');
+    if (today) today.textContent = new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
     $('#winTitle').textContent = title;
     $('#mbApp').textContent = title;
     win.classList.toggle('term-mode', term);
@@ -130,7 +133,7 @@
   };
   const setChannel = (n, { zoom = true } = {}) => {
     state.ch = n;
-    show($(`#ch-${n}`).innerHTML, CH_NAMES[n]);
+    show($(`#ch-${n}`).innerHTML, n === 0 ? 'The Ziqi Digest' : CH_NAMES[n], { wide: n === 0 });
     markNav(n);
     $$('.hz.book').forEach(t => t.classList.remove('active'));
     const name = Object.keys(HASH).find(k => HASH[k] === n);
@@ -153,7 +156,10 @@
     tip.textContent = text; tip.style.left = `${x}px`; tip.style.top = `${y}px`; tip.classList.add('show');
     clearTimeout(tipTimer); if (ms) tipTimer = setTimeout(() => tip.classList.remove('show'), ms);
   };
-  const setLamp = on => { state.lamp = on; document.body.classList.toggle('lamp-off', !on); };
+  const setLamp = on => {
+    state.lamp = on; document.body.classList.toggle('lamp-off', !on);
+    if (!on && !$('#photoOff').getAttribute('src')) loadOff();
+  };
 
   /* sound: filtered-noise rain plus a slow ambient chord loop, all generated */
   let audio = null;
@@ -325,14 +331,20 @@
   /* ---------------- boot: wait for the render to load ---------------- */
   layout(false);
   const target = HASH[location.hash.slice(1)];
-  const imgs = [$('#photoOn'), $('#photoOff')];
-  let loaded = 0;
-  const bar = $('#loadBar');
+  // Only the lamp-on render blocks the reveal; the lamp-off one loads afterwards.
+  const main = $('#photoOn'), bar = $('#loadBar');
+  const loadOff = () => {
+    // use whichever format the browser already picked for the lamp-on render
+    const off = $('#photoOff'), ext = (main.currentSrc.match(/\.(avif|webp|jpg)$/) || [, 'jpg'])[1];
+    off.src = off.dataset[ext];
+  };
   const ready = () => {
     $('#loader').classList.add('done');
+    setTimeout(loadOff, 300);
     // phones start on the screen; the full desk is one tap (or Esc) away
     if (target) setChannel(target); else setChannel(0, { zoom: innerWidth < 700 });
   };
-  const onLoad = () => { loaded++; bar.style.width = `${loaded / imgs.length * 100}%`; if (loaded === imgs.length) setTimeout(ready, 200); };
-  imgs.forEach(i => (i.complete && i.naturalWidth ? onLoad() : (i.addEventListener('load', onLoad), i.addEventListener('error', onLoad))));
+  bar.style.width = '35%';
+  const onLoad = () => { bar.style.width = '100%'; (main.decode ? main.decode().catch(() => {}) : Promise.resolve()).then(() => setTimeout(ready, 120)); };
+  if (main.complete && main.naturalWidth) onLoad(); else { main.addEventListener('load', onLoad); main.addEventListener('error', ready); }
 })();

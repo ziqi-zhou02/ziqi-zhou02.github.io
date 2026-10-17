@@ -9,10 +9,7 @@
   <meta property="og:description" content="Projects, writing and contact on a desk by the window.">
   <meta property="og:image" content="assets/room/night_on.jpg">
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="preload" as="image" href="assets/room/night_on.jpg">
+  <link rel="preload" as="image" href="assets/room/night_on.avif" type="image/avif" fetchpriority="high">
   <link rel="stylesheet" href="assets/room.css">
 </head>
 <body>
@@ -21,8 +18,14 @@
   <div class="viewport" id="viewport">
     <div class="stage" id="stage">
       <!-- the room, rendered offline in Blender (Cycles); lamp on and lamp off -->
-      <img class="photo" id="photoOn" src="assets/room/night_on.jpg" alt="A desk at night by a window over a city skyline, with a display, keyboard, lamp, plant and books">
-      <img class="photo off" id="photoOff" src="assets/room/night_off.jpg" alt="" aria-hidden="true">
+      <picture>
+        <source srcset="assets/room/night_on.avif" type="image/avif">
+        <source srcset="assets/room/night_on.webp" type="image/webp">
+        <img class="photo" id="photoOn" src="assets/room/night_on.jpg" fetchpriority="high" decoding="async" alt="A desk at night by a window over a city skyline, with a display, keyboard, lamp, plant and books">
+      </picture>
+      <!-- the lamp-off render is fetched after the room is on screen -->
+      <img class="photo off" id="photoOff" alt="" aria-hidden="true" decoding="async"
+           data-avif="assets/room/night_off.avif" data-webp="assets/room/night_off.webp" data-jpg="assets/room/night_off.jpg">
 
       <!-- rain, masked to the visible glass -->
       <canvas class="rain" id="rain" aria-hidden="true"></canvas>
@@ -84,14 +87,53 @@
 
   <!-- content for each section (kept in the page so it's readable without JS) -->
   <template id="ch-0">
-    <div class="hero">
-      <h1>Ziqi Zhou</h1>
-      <p class="dim">Student and builder. Writing about AI.</p>
-      <div class="tiles">
-        <button data-ch="1"><b>About</b><span>who I am</span></button>
-        <button data-ch="2"><b>Projects</b><span>things I built</span></button>
-        <button data-ch="3"><b>Writing</b><span>2 essays</span></button>
-        <button data-ch="4"><b>Contact</b><span>say hi</span></button>
+    <div class="digest">
+      <header class="dg-mast">
+        <div><b>The Ziqi Digest</b><span>Notes on AI, software and how things get built</span></div>
+        <span class="dg-date" data-today></span>
+      </header>
+      <nav class="dg-tabs">
+        <button data-ch="3">Writing</button><button data-ch="2">Projects</button><button data-ch="1">About</button><button data-ch="4">Contact</button>
+      </nav>
+      <div class="dg-grid">
+        <article class="dg-lead">
+          <a href="posts/tokenomy.html">
+            <div class="dg-art art-chain" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <p class="dg-kicker">Essay · AI economics</p>
+            <h2>Following a Dollar Through the Tokenomy</h2>
+            <p class="dg-dek">How neoclouds and token sellers make money, who keeps what along the value chain, and how the money circles back to the labs.</p>
+            <p class="dg-by">Ziqi Zhou · Oct 17, 2026 · 15 min read</p>
+          </a>
+        </article>
+        <div class="dg-side">
+          <article class="dg-item">
+            <a href="posts/one-owner-many-agents.html">
+              <div class="dg-art art-orbit" aria-hidden="true"><i></i></div>
+              <div>
+                <p class="dg-kicker">Essay · Org design</p>
+                <h3>One Owner, Many Agents</h3>
+                <p class="dg-by">Oct 17, 2026 · 9 min</p>
+              </div>
+            </a>
+          </article>
+          <section class="dg-latest">
+            <h4>Latest</h4>
+            <ol>
+              <li><time>Oct 17</time><a href="posts/tokenomy.html">Following a Dollar Through the Tokenomy</a></li>
+              <li><time>Oct 17</time><a href="posts/one-owner-many-agents.html">One Owner, Many Agents</a></li>
+              <li><time>Project</time><button data-book="alpha">Project Alpha · Python, PyTorch</button></li>
+              <li><time>Project</time><button data-book="beta">Project Beta · React, Node</button></li>
+            </ol>
+          </section>
+        </div>
+        <aside class="dg-about">
+          <div class="dg-avatar" aria-hidden="true">ZZ</div>
+          <h4>About</h4>
+          <!-- TODO: 换成你的介绍 -->
+          <p>Hi, I'm Ziqi. I build software and ML experiments, and write about the economics and organizations behind AI.</p>
+          <p class="dim">Now: building this site · reading about inference economics</p>
+          <button class="dg-cta" data-ch="4">Get in touch →</button>
+        </aside>
       </div>
     </div>
   </template>

@@ -75,6 +75,18 @@ def box(name, size, loc, material, bevel=0.0, segments=4, rot=(0, 0, 0)):
     for p in o.data.polygons: p.use_smooth = True
     return o
 
+def wedge(name, w, d, h_front, h_back, loc, material, bevel=0.002):
+    # a slab whose top rises from h_front (toward camera, -y) to h_back (+y)
+    o = box(name, (w, d, 1.0), (0, 0, 0), material)
+    for v in o.data.vertices:
+        t = (v.co.y + d / 2) / d
+        v.co.z = 0.0 if v.co.z < 0 else h_front + (h_back - h_front) * t
+    o.location = loc
+    if bevel:
+        mod = o.modifiers['bevel'] if 'bevel' in o.modifiers else o.modifiers.new('bevel', 'BEVEL')
+        mod.width = bevel; mod.segments = 4; mod.limit_method = 'NONE'
+    return o
+
 def cyl(name, r, h, loc, material, verts=64, bevel=0.0):
     bpy.ops.mesh.primitive_cylinder_add(vertices=verts, radius=r, depth=h, location=loc)
     o = bpy.context.active_object; o.name = name
@@ -86,9 +98,9 @@ def cyl(name, r, h, loc, material, verts=64, bevel=0.0):
 
 # ---------------------------------------------------------------- materials
 M = {
-    'alu': mat('aluminium', (0.8, 0.82, 0.86), rough=0.42, metal=1.0),
+    'alu': mat('aluminium', (0.66, 0.67, 0.7), rough=0.5, metal=1.0),
     'alu_dark': mat('aluminium dark', (0.5, 0.51, 0.53), rough=0.35, metal=1.0),
-    'glass_black': mat('black glass', (0.003, 0.003, 0.004), rough=0.04, coat=1.0),
+    'glass_black': mat('black glass', (0.004, 0.004, 0.005), rough=0.32, coat=0.25),
     'key': mat('key', (0.93, 0.93, 0.94), rough=0.45),
     'ceramic': mat('ceramic', (0.92, 0.92, 0.91), rough=0.12, coat=0.6),
     'coffee': mat('coffee', (0.06, 0.03, 0.015), rough=0.05),
@@ -151,20 +163,26 @@ for sx in (-1.08, 1.08):
 
 # ---------------------------------------------------------------- display (27", 16:9)
 SW, SH = 0.597, 0.336                  # active area
-BW, BH, BD = 0.623, 0.362, 0.018      # body
-DX, DY, DZ = 0.0, 0.16, DESK_Z + 0.107 + BH / 2
-body = box('display_body', (BW, BD, BH), (DX, DY, DZ), M['alu'], bevel=0.010, segments=6)
-front = box('display_glass', (BW - 0.004, 0.002, BH - 0.004), (DX, DY - BD / 2 - 0.001, DZ), M['glass_black'], bevel=0.008, segments=6)
+BW, BH, BD = 0.623, 0.362, 0.031      # body (Apple spec)
+DX, DY, DZ = 0.0, 0.14, DESK_Z + 0.116 + BH / 2
+body = box('display_body', (BW, BD, BH), (DX, DY, DZ), M['alu'], bevel=0.0035, segments=4)
+front = box('display_glass', (BW - 0.0016, 0.0015, BH - 0.0016), (DX, DY - BD / 2 - 0.0008, DZ), M['glass_black'], bevel=0.0035, segments=4)
 bpy.ops.mesh.primitive_plane_add(size=1, location=(DX, DY - BD / 2 - 0.0025, DZ), rotation=(math.pi / 2, 0, 0))
 screen = bpy.context.active_object; screen.name = 'display_screen'; screen.scale = (SW, SH, 1)
 bpy.ops.object.transform_apply(scale=True); screen.data.materials.append(M['screen'])
 # stand: a bent aluminium sheet behind the display, plus its foot
-box('stand_upright', (0.14, 0.012, 0.26), (DX, DY + 0.07, DESK_Z + 0.13), M['alu'], bevel=0.004, rot=(math.radians(-18), 0, 0))
-box('stand_foot', (0.14, 0.2, 0.006), (DX, DY + 0.08, DESK_Z + 0.003), M['alu'], bevel=0.003)
+# stand: one bent aluminium sheet. The arm runs from the back of the panel down and back to
+# the bend; the foot runs forward from the bend under the display.
+T = Vector((DX, DY + BD / 2 + 0.004, DZ - 0.03)); B = Vector((DX, DY + 0.155, DESK_Z + 0.008))
+v = T - B; Ls = v.length; phi = math.atan2(-v.y, v.z)
+box('stand_arm', (0.15, 0.008, Ls), (T + B) / 2, M['alu'], bevel=0.003, rot=(phi, 0, 0))
+box('stand_foot', (0.15, 0.17, 0.006), (DX, DY + 0.07, DESK_Z + 0.003), M['alu'], bevel=0.0025)
+cyl('stand_bend', 0.008, 0.15, (DX, DY + 0.155, DESK_Z + 0.009), M['alu']).rotation_euler = (0, math.pi / 2, 0)
 
 # keyboard
 KX, KY = -0.03, -0.12
-box('kb_body', (0.279, 0.114, 0.006), (KX, KY, DESK_Z + 0.003), M['alu'], bevel=0.0025)
+wedge('kb_body', 0.279, 0.1149, 0.0041, 0.0095, (KX, KY, DESK_Z), M['alu'], bevel=0.002)
+SLOPE = (0.0095 - 0.0041) / 0.1149
 kw, gap = 0.0168, 0.0022
 for r in range(6):
     cols = 14 if r < 5 else 10
@@ -176,11 +194,12 @@ for r in range(6):
     x = x0
     for wd in widths:
         w = kw * wd + gap * (wd - 1)
-        box(f'key_{r}_{x:.3f}', (w, rowh, 0.003), (x + w / 2, y, DESK_Z + 0.0075), M['key'], bevel=0.0012, segments=3)
+        kz = DESK_Z + 0.0041 + (y - (KY - 0.1149 / 2)) * SLOPE + 0.0012
+        box(f'key_{r}_{x:.3f}', (w, rowh, 0.0028), (x + w / 2, y, kz), M['key'], bevel=0.0011, segments=3, rot=(math.atan(SLOPE), 0, 0))
         x += w + gap
 # trackpad
-box('trackpad', (0.16, 0.115, 0.005), (0.25, -0.12, DESK_Z + 0.0025), M['alu'], bevel=0.003)
-box('trackpad_glass', (0.154, 0.109, 0.001), (0.25, -0.12, DESK_Z + 0.0052), mat('trackpad glass', (0.78, 0.79, 0.8), rough=0.18), bevel=0.003)
+wedge('trackpad', 0.16, 0.1149, 0.0049, 0.0109, (0.25, -0.12, DESK_Z), M['alu'], bevel=0.0025)
+wedge('trackpad_glass', 0.157, 0.1119, 0.0051, 0.0111, (0.25, -0.12, DESK_Z), mat('trackpad glass', (0.86, 0.86, 0.87), rough=0.22, coat=0.4), bevel=0.003)
 
 # mug
 MX, MY = -0.43, -0.02
@@ -217,9 +236,9 @@ HEAD = Vector((LX + 0.36, LY - 0.125, DESK_Z + 0.555))
 cyl('lamp_head', 0.075, 0.014, HEAD, M['lamp_white'], bevel=0.005)
 lamp_on = VARIANT == 'lamp_on'
 cyl('lamp_diffuser', 0.066, 0.002, HEAD - Vector((0, 0, 0.008)), mat('diffuser', (1, 0.95, 0.88), rough=0.5,
-    emit=(1.0, 0.86, 0.68), emit_strength=18.0 if lamp_on else 0.0))
+    emit=(1.0, 0.86, 0.68), emit_strength=40.0 if lamp_on else 0.0))
 if lamp_on:
-    ld = bpy.data.lights.new('lamp_light', 'SPOT'); ld.energy = 45; ld.spot_size = math.radians(130); ld.spot_blend = 0.6
+    ld = bpy.data.lights.new('lamp_light', 'SPOT'); ld.energy = 150; ld.spot_size = math.radians(120); ld.spot_blend = 0.7
     ld.color = (1.0, 0.82, 0.62); ld.shadow_soft_size = 0.06
     lo = bpy.data.objects.new('lamp_light', ld); lo.location = HEAD - Vector((0, 0, 0.012)); col.objects.link(lo)
 
@@ -263,7 +282,7 @@ mp.inputs['Location'].default_value = (0, 0, -0.04)
 nt.links.new(tc.outputs['Generated'], mp.inputs['Vector']); nt.links.new(mp.outputs['Vector'], et.inputs['Vector'])
 nt.links.new(et.outputs['Color'], bg.inputs['Color']); bg.inputs['Strength'].default_value = 0.55
 nt.links.new(bg.outputs[0], wo.inputs['Surface'])
-fd = bpy.data.lights.new('fill', 'AREA'); fd.energy = 6 if lamp_on else 4; fd.size = 2.5; fd.color = (0.75, 0.78, 1.0)
+fd = bpy.data.lights.new('fill', 'AREA'); fd.energy = 6 if lamp_on else 2.5; fd.size = 2.5; fd.color = (0.75, 0.78, 1.0)
 fo = bpy.data.objects.new('fill', fd); fo.location = (0, -1.2, 2.9); col.objects.link(fo)
 
 # ---------------------------------------------------------------- camera
@@ -339,4 +358,6 @@ scene.cycles.samples = 16; scene.cycles.use_denoising = False
 scene.view_settings.view_transform = 'Standard'; scene.view_settings.look = 'None'; scene.view_settings.exposure = 0
 scene.render.filepath = os.path.join(OUT, 'mask.png')
 bpy.ops.render.render(write_still=True)
+print('done', scene.render.filepath)
+
 print('done', scene.render.filepath)
