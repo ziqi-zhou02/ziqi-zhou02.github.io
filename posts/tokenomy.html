@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tokenomy</title>
+  <meta name="description" content="How the neocloud and token-selling businesses work: following one dollar from the end user down to the GPU, who earns what at each layer, and how the money circles back.">
+  <meta property="og:title" content="Tokenomy: Following a Dollar from GPU to Token">
+  <meta property="og:description" content="The life of a token, the AI value chain, and why every layer can look profitable at once.">
+  <link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+  <script>
+    try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="progress" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+  <div class="cursor-ring" aria-hidden="true"></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <header class="nav">
+    <a href="../" class="logo" data-scramble>~/<span class="accent">ziqi</span></a>
+    <nav>
+      <a href="../#projects" data-scramble><span class="num">02.</span>projects</a>
+      <a href="../#writing" data-scramble><span class="num">03.</span>writing</a>
+      <button class="icon-btn" id="theme-toggle" title="Toggle theme">◐</button>
+    </nav>
+  </header>
+
+  <article class="article">
+    <a class="back" href="../#writing">← all writing</a>
+
+    <div class="article-meta">
+      <span>Oct 17, 2026</span><span>·</span><span>~15 min read</span><span>·</span><span>Ziqi Zhou</span><span>·</span><span class="tag">#ai-economics #neocloud</span>
+    </div>
+    <h1>Tokenomy: Following a Dollar from GPU to Token</h1>
+    <p class="dek">How the neocloud and token-selling businesses actually work: who touches a token on its way to you, who keeps how much of your dollar, and why every layer can look profitable at the same time.</p>
+
+    <div class="tldr">
+      <b>TL;DR</b>
+      <ul>
+        <li>The AI economy runs on two units. Infrastructure sells <strong>GPU-hours</strong>; model companies sell <strong>tokens</strong>. Everything else is a markup between the two.</li>
+        <li>One estimate of where a dollar of token revenue ends up: roughly half stays with the model company, about 13¢ goes to cloud and data centers, about 13¢ to the GPU vendor, and only a few cents each to memory, power and foundries (Korea Invest, 2026).</li>
+        <li>Reported margins look very different by layer. Nvidia's gross margin is above 70%. Neoclouds post ~56% adjusted EBITDA but near-zero operating margin after depreciation. Model labs reportedly sit at ~33–40% gross margin.</li>
+        <li>A large share of the money is circular. Chip vendors invest in labs and backstop clouds, labs sign giant compute contracts, and clouds borrow against those contracts to buy chips. This is mostly ordinary vendor financing, but it concentrates risk.</li>
+        <li>As of this month the market is testing the weakest link: CoreWeave's bonds yield ~15% and lenders are pulling back.</li>
+      </ul>
+    </div>
+
+    <nav class="tldr" aria-label="Table of contents">
+      <b>CONTENTS</b>
+      <ul>
+        <li><a href="#units">Two units: GPU-hours and tokens</a></li>
+        <li><a href="#life">The life of a token</a></li>
+        <li><a href="#chain">The value chain: who keeps what</a></li>
+        <li><a href="#neocloud">Inside a neocloud: the spread business</a></li>
+        <li><a href="#tokens">Inside the token business</a></li>
+        <li><a href="#loop">How the money circles back</a></li>
+        <li><a href="#paper">Why every layer looks profitable</a></li>
+        <li><a href="#press">What the press is saying right now</a></li>
+        <li><a href="#watch">What to watch</a></li>
+        <li><a href="#citation">Citation &amp; references</a></li>
+      </ul>
+    </nav>
+
+    <div class="prose">
+      <p>A year ago "neocloud" was industry jargon. This week it's on the front page of the business section. CoreWeave, the largest of the new GPU clouds, saw its stock drop 15% in a day after a chart of its bond yield went viral (Edwards, 2026). Underneath the headlines is a simple question that's surprisingly hard to answer: <strong>when you pay for an AI answer, where does the money go, and does anyone along the way actually make a profit?</strong></p>
+      <p>This post tries to answer it from first principles, using public filings and the best reporting I could find. Treat the numbers as approximate: much of this industry is private, and many figures come from leaks reported secondhand. I've tried to say where each number comes from.</p>
+
+      <h2 id="units"><span class="n">01</span>Two units: GPU-hours and tokens</h2>
+      <p>Almost every business in the stack sells one of two things.</p>
+      <ul>
+        <li><strong>GPU-hours.</strong> One accelerator, rented for one hour. Hyperscalers (AWS, Azure, Google Cloud, Oracle) and neoclouds (CoreWeave, Nebius, Lambda, Crusoe) sell these, either on demand or through multi-year contracts.</li>
+        <li><strong>Tokens.</strong> A chunk of text in or out of a model, priced per million. Model labs (OpenAI, Anthropic, Google) sell these, as do inference platforms that host open models (Together, Fireworks).</li>
+      </ul>
+      <p>Turning GPU-hours into tokens is the core technical act of the industry, and "tokenomy" is my shorthand for the economy built around it. The conversion rate, tokens per GPU-hour, depends on the model, the hardware and how cleverly requests are batched. Most of the interesting economics comes down to who controls that conversion rate and who carries its risk.</p>
+
+      <h2 id="life"><span class="n">02</span>The life of a token</h2>
+      <p>Follow one request. A developer in Cursor asks for a refactor. Cursor sends the prompt to a model, either directly through the lab's API or through a marketplace like AWS Bedrock, Azure or OpenRouter. The lab runs the model on accelerators it rents from a cloud. That cloud bought the chips from Nvidia or AMD, which had them fabbed at TSMC with memory from SK hynix or Micron, and racked them in a data center that needs a lot of power. Money flows down that chain, and the service flows back up.</p>
+    </div>
+
+    <figure class="fig">
+      <div class="fig-frame">
+        <svg viewBox="0 0 720 222" role="img" aria-label="The life of a token. Money flows from the end user through the app, a router or marketplace, the model lab, the cloud, the GPU vendor, to the fab and memory makers. Service flows back the other way as wafers, GPUs, GPU-hours, tokens and answers.">
+          <defs>
+            <marker id="t1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="c1-fill"/></marker>
+            <marker id="t1b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="c2-fill"/></marker>
+          </defs>
+          <text x="0" y="14" class="d-muted">$ flows down the stack →</text>
+          <line x1="0" y1="26" x2="714" y2="26" class="c1-line" marker-end="url(#t1a)"/>
+          <g class="d-muted" text-anchor="middle">
+            <text x="98" y="46">subscription</text><text x="202" y="46">per token</text><text x="306" y="46">per token</text>
+            <text x="410" y="46">per GPU-hr</text><text x="514" y="46">per GPU</text><text x="618" y="46">per wafer</text>
+          </g>
+          <g>
+            <rect x="0" y="58" width="92" height="70" rx="10" class="d-box"/>
+            <rect x="104" y="58" width="92" height="70" rx="10" class="d-box"/>
+            <rect x="208" y="58" width="92" height="70" rx="10" class="d-box"/>
+            <rect x="312" y="58" width="92" height="70" rx="10" class="d-hot"/>
+            <rect x="416" y="58" width="92" height="70" rx="10" class="d-hot"/>
+            <rect x="520" y="58" width="92" height="70" rx="10" class="d-box"/>
+            <rect x="624" y="58" width="92" height="70" rx="10" class="d-box"/>
+          </g>
+          <g text-anchor="middle">
+            <text x="46" y="82" class="d-strong">end user</text><text x="46" y="100" class="d-muted">you, a dev,</text><text x="46" y="114" class="d-muted">a company</text>
+            <text x="150" y="82" class="d-strong">app</text><text x="150" y="100" class="d-muted">Cursor,</text><text x="150" y="114" class="d-muted">Perplexity</text>
+            <text x="254" y="82" class="d-strong">router</text><text x="254" y="100" class="d-muted">OpenRouter,</text><text x="254" y="114" class="d-muted">Bedrock, Azure</text>
+            <text x="358" y="82" class="d-strong">model lab</text><text x="358" y="100" class="d-muted">OpenAI,</text><text x="358" y="114" class="d-muted">Anthropic</text>
+            <text x="462" y="82" class="d-strong">cloud</text><text x="462" y="100" class="d-muted">CoreWeave,</text><text x="462" y="114" class="d-muted">Oracle, AWS</text>
+            <text x="566" y="82" class="d-strong">chips</text><text x="566" y="100" class="d-muted">Nvidia,</text><text x="566" y="114" class="d-muted">AMD</text>
+            <text x="670" y="82" class="d-strong">fab + HBM</text><text x="670" y="100" class="d-muted">TSMC,</text><text x="670" y="114" class="d-muted">SK hynix</text>
+          </g>
+          <g class="d-muted" text-anchor="middle">
+            <text x="98" y="150">answer</text><text x="202" y="150">tokens</text><text x="306" y="150">tokens</text>
+            <text x="410" y="150">GPU-hours</text><text x="514" y="150">GPUs</text><text x="618" y="150">chips + HBM</text>
+          </g>
+          <line x1="716" y1="164" x2="2" y2="164" class="c2-line" marker-end="url(#t1b)"/>
+          <text x="716" y="184" text-anchor="end" class="d-muted">← service flows back up</text>
+          <text x="358" y="210" text-anchor="middle" class="d-text">GPU-hours become tokens here ↑ (the conversion that sets everyone's margins)</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig. 1</b>The life of a token. Money (violet) moves from the end user down to the fabs; service (teal) moves back up. The highlighted pair, the model lab and its cloud, is where GPU-hours turn into tokens. Routers are optional: many apps call the lab directly.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <p>Three details matter more than they first appear to:</p>
+      <ul>
+        <li><strong>Pricing units change at each boundary.</strong> The user pays a flat subscription, the app pays per token, the lab pays per GPU-hour, and the cloud pays per chip. Each change of unit is a place where someone takes on risk, and is paid for it.</li>
+        <li><strong>Marketplaces take a cut.</strong> When a lab's model is sold through a cloud marketplace, the cloud keeps a share. Until this year Microsoft paid OpenAI only 20% of what it earned reselling OpenAI models on Azure. Under the restructured deal Microsoft no longer pays that share, while OpenAI keeps paying Microsoft 20% of its revenue through 2030, now capped (Bloomberg, 2026). Reuters estimated that Anthropic pays its cloud partners roughly 16¢ of every dollar it earns through them.</li>
+        <li><strong>The lab often doesn't own the GPUs.</strong> That single fact is why neoclouds exist, and why their fortunes are tied to a handful of labs.</li>
+      </ul>
+
+      <h2 id="chain"><span class="n">03</span>The value chain: who keeps what</h2>
+      <p>The cleanest public attempt to split one dollar of token revenue I found comes from Korea Investment &amp; Securities (Shin, 2026). The analysis separates <em>revenue attribution</em> (who sends the invoice) from <em>value added</em> (the surplus each layer keeps once you remove double counting). Value added is the right lens for "who earns what."</p>
+    </div>
+
+    <figure class="fig">
+      <div class="fig-frame">
+        <svg viewBox="0 0 720 272" role="img" aria-label="Value added per one dollar of AI token revenue. Model company 45 to 55 cents, cloud and data center 10 to 16 cents, GPU supplier about 13 cents, other hardware and software about 5 cents, memory about 2.3 cents, power about 1.3 cents, foundry about 1 cent, with about 14 cents spread across construction and materials. Reported margins: model labs about 33 to 40 percent gross; neoclouds about 56 percent adjusted EBITDA but about 1 percent adjusted operating margin; Nvidia 71 to 75 percent gross.">
+          <text x="200" y="16" class="d-muted">value added per $1 of token revenue</text>
+          <text x="545" y="16" class="d-muted">reported margin</text>
+          <line x1="200" y1="26" x2="200" y2="236" class="d-axis"/>
+
+          <text x="0" y="48" class="d-text">model company</text>
+          <rect x="200" y="37" width="250" height="14" rx="3" class="c1-fill"><title>Model company: 45–55¢ (midpoint 50¢)</title></rect>
+          <line x1="425" y1="44" x2="475" y2="44" class="d-rule" style="stroke-dasharray:none;stroke-width:1.5"/>
+          <line x1="425" y1="39" x2="425" y2="49" class="d-rule" style="stroke-dasharray:none;stroke-width:1.5"/><line x1="475" y1="39" x2="475" y2="49" class="d-rule" style="stroke-dasharray:none;stroke-width:1.5"/>
+          <text x="483" y="48" class="d-num">45–55¢</text>
+
+          <text x="0" y="78" class="d-text">cloud &amp; data center</text>
+          <rect x="200" y="67" width="65" height="14" rx="3" class="c1-fill"><title>Cloud &amp; data center: 10–16¢ (midpoint 13¢)</title></rect>
+          <line x1="250" y1="74" x2="280" y2="74" class="d-rule" style="stroke-dasharray:none;stroke-width:1.5"/>
+          <line x1="250" y1="69" x2="250" y2="79" class="d-rule" style="stroke-dasharray:none;stroke-width:1.5"/><line x1="280" y1="69" x2="280" y2="79" class="d-rule" style="stroke-dasharray:none;stroke-width:1.5"/>
+          <text x="288" y="78" class="d-num">10–16¢</text>
+
+          <text x="0" y="108" class="d-text">GPU supplier</text>
+          <rect x="200" y="97" width="65" height="14" rx="3" class="c1-fill"><title>GPU supplier: ~13¢</title></rect>
+          <text x="273" y="108" class="d-num">~13¢</text>
+
+          <text x="0" y="138" class="d-text">other hw + software</text>
+          <rect x="200" y="127" width="27" height="14" rx="3" class="c1-fill"><title>Infra software, storage, security, server OEM, networking, CPU &amp; IP: ~5.4¢ combined</title></rect>
+          <text x="235" y="138" class="d-num">~5¢</text>
+
+          <text x="0" y="168" class="d-text">memory (HBM, DRAM)</text>
+          <rect x="200" y="157" width="12" height="14" rx="3" class="c1-fill"><title>Memory: ~2.3¢</title></rect>
+          <text x="220" y="168" class="d-num">~2.3¢</text>
+
+          <text x="0" y="198" class="d-text">power</text>
+          <rect x="200" y="187" width="7" height="14" rx="3" class="c1-fill"><title>Power: ~1.3¢</title></rect>
+          <text x="215" y="198" class="d-num">~1.3¢</text>
+
+          <text x="0" y="228" class="d-text">foundry</text>
+          <rect x="200" y="217" width="5" height="14" rx="3" class="c1-fill"><title>Foundry: ~1¢</title></rect>
+          <text x="213" y="228" class="d-num">~1¢</text>
+
+          <text x="0" y="262" class="d-muted">≈14¢ remaining: construction, materials, residual (not allocated)</text>
+
+          <g class="d-muted">
+            <text x="545" y="78">neocloud adj. EBITDA ~56%</text>
+            <text x="545" y="92">… adj. operating ~1%</text>
+            <text x="545" y="108">Nvidia gross 71–75%</text>
+            <text x="545" y="168">~25–30% of rack cost</text>
+          </g>
+          <text x="545" y="48" class="d-muted">labs: gross ~33–40%</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig. 2</b>Who keeps what. Bars show value added per $1 of token revenue (Shin, 2026), with whiskers for the ranges given. The right column lists reported margins from separate sources (Daloopa; Nvidia FY2026 8-K; The Information via BigGo; iCapital) and is text, not a second scale. The split starts at the model company's revenue, so app-layer margins aren't included. Hover a bar for its exact value.</figcaption>
+      <details>
+        <summary class="table-toggle">show as table</summary>
+        <table>
+          <tr><th>Layer</th><th>Value added / $1</th><th>Reported margin</th></tr>
+          <tr><td>Model company</td><td>45–55¢</td><td>gross ~33% (OpenAI) to ~40% (Anthropic), 2025</td></tr>
+          <tr><td>Cloud &amp; data center</td><td>10–16¢</td><td>CoreWeave adj. EBITDA 56%, adj. operating 1% (Q1 2026)</td></tr>
+          <tr><td>GPU supplier</td><td>~13¢</td><td>Nvidia gross 71.1% FY26, 75.0% Q4 FY26</td></tr>
+          <tr><td>Other hw + software</td><td>~5.4¢</td><td>n/a</td></tr>
+          <tr><td>Memory</td><td>~2.3¢</td><td>memory rising toward 25–30% of rack cost</td></tr>
+          <tr><td>Power</td><td>~1.3¢</td><td>n/a</td></tr>
+          <tr><td>Foundry</td><td>~1¢</td><td>n/a</td></tr>
+          <tr><td>Construction, materials, residual</td><td>≈14¢</td><td>not allocated</td></tr>
+        </table>
+      </details>
+    </figure>
+
+    <div class="prose">
+      <p>Two things stand out. First, the model company keeps the largest share of value per dollar. That isn't the same as being the most profitable. Labs carry the heaviest fixed costs (training runs, research salaries, free users), so a large slice of gross value can still mean an operating loss. iCapital puts it bluntly: foundation-model companies "run at an operating loss, funded by external capital rather than revenue," while the hardware vendors capture the largest profit pools (iCapital, 2026).</p>
+      <p>Second, the upstream layers keep a small share per token dollar but with very high margins. They are also paid <em>up front</em>. Nvidia sells the chip on day one; the lab only recovers that cost token by token over years. Where you sit on the payment timeline matters as much as your margin.</p>
+      <p>Here is each layer in one line:</p>
+      <ul>
+        <li><strong>Chips (Nvidia, AMD).</strong> Nvidia reported a 71.1% GAAP gross margin for fiscal 2026 and 75.0% in its latest quarter, on $62.3B of data center revenue in that quarter (Nvidia, 2026). This is the most profitable layer, and the one financing much of the rest (see §6).</li>
+        <li><strong>Neoclouds.</strong> A spread business: buy GPUs with debt, rent them by the hour. Strong EBITDA, thin operating profit. More in §4.</li>
+        <li><strong>Hyperscalers.</strong> They rent GPUs too, but they also own the customer relationship, sell their own models and chips, and take marketplace cuts. They are the best diversified, and also the biggest spenders: the big four's 2026 capex is estimated near $725B (Shin, 2026).</li>
+        <li><strong>Model labs.</strong> OpenAI's adjusted gross margin reportedly fell to ~33% in 2025 from ~40%, below its 46% target, as inference costs roughly quadrupled to $8.4B. Anthropic's was projected around 40%, also below target (The Information, as summarized by BigGo, 2026).</li>
+        <li><strong>Inference platforms.</strong> Hosts of open models live on optimization. Analyst estimates put Together AI's gross margin near 45% and Fireworks near 50% (Sacra). Routers like OpenRouter take a few percent on spend that passes through them.</li>
+        <li><strong>Apps.</strong> Tokens are their cost of goods. Cheaper tokens mean better margins, which is why application companies are often described as the natural winners when inference prices fall (iCapital, 2026). Investors agree: Perplexity trades at ~222× estimated gross profit, compared with ~24× for Together AI (Tunguz, 2025).</li>
+      </ul>
+
+      <h2 id="neocloud"><span class="n">04</span>Inside a neocloud: the spread business</h2>
+      <p>A neocloud's business fits in a sentence: borrow money, buy GPUs, rent them out for more than they cost to own. The spread is the business. It sounds simple, but it's sensitive to three numbers: the rental price, utilization, and how long a GPU stays useful.</p>
+      <p><strong>The price fell fast.</strong> H100 rentals were near $8/hour at the peak in late 2024. By December 2025 they were ~$2.85–3.50 on demand and ~$1.90–2.15 on one-year commitments at the big clouds (Introl, 2025). More than 300 new providers entered in 2025 alone. Demand also shifted from training giant models to inference, which is more price-sensitive.</p>
+      <p><strong>Contracts are the cushion.</strong> CoreWeave says 98% of its revenue comes from committed take-or-pay contracts. It reports $103.7B of remaining performance obligations (signed but unrecognized revenue), and its top three customers made up 72% of Q2 revenue (Edwards, 2026). Microsoft alone was 62% of CoreWeave's 2024 revenue, per its IPO filing.</p>
+      <p><strong>Depreciation is the whole game.</strong> In Q1 2026, depreciation and amortization was 55% of CoreWeave's revenue and 53% of Nebius's (Daloopa, 2026). CoreWeave depreciates GPUs over six years; Nebius uses four. To see why that one assumption matters so much, I built a toy model of one H100.</p>
+    </div>
+
+    <figure class="fig">
+      <div class="fig-frame">
+        <svg viewBox="0 0 720 236" role="img" aria-label="Illustrative unit economics of one H100 per available hour at 2 dollars per hour and 80 percent utilization, so 1.60 dollars of revenue. With a 6-year depreciation life, costs total 1.35 dollars, a 16 percent pre-tax margin. With a 4-year life, depreciation rises from 0.57 to 0.86 dollars and costs total 1.64 dollars, a loss of 0.04 dollars.">
+          <text x="630" y="20" text-anchor="middle" class="d-strong">revenue $1.60</text>
+          <line x1="630" y1="28" x2="630" y2="186" class="d-rule"/>
+          <g class="d-muted" text-anchor="middle">
+            <text x="235.5" y="50">depreciation</text><text x="360" y="50">interest</text><text x="439.5" y="50">DC lease</text>
+            <text x="495" y="50">power</text><text x="532.5" y="50">ops</text>
+          </g>
+
+          <text x="0" y="74" class="d-strong">6-yr life</text>
+          <text x="0" y="90" class="d-muted">margin +16%</text>
+          <rect x="150" y="58" width="169" height="34" rx="4" class="c1-fill"><title>Depreciation, 6-yr life: $0.57 per available hour</title></rect>
+          <rect x="321" y="58" width="76" height="34" class="c-neutral"><title>Interest: $0.26</title></rect>
+          <rect x="399" y="58" width="79" height="34" class="c-neutral"><title>Data-center lease: $0.27</title></rect>
+          <rect x="480" y="58" width="28" height="34" class="c-neutral"><title>Power: $0.10</title></rect>
+          <rect x="510" y="58" width="43" height="34" class="c-neutral"><title>Ops &amp; staff: $0.15</title></rect>
+          <rect x="555" y="58" width="75" height="34" rx="4" class="c1-ghost"><title>Pre-tax profit: +$0.25 (16%)</title></rect>
+          <g text-anchor="middle" class="d-num">
+            <text x="235.5" y="79" style="fill:#fff">$0.57</text><text x="360" y="79">$0.26</text><text x="439.5" y="79">$0.27</text><text x="592.5" y="79">+$0.25</text>
+          </g>
+
+          <text x="0" y="154" class="d-strong">4-yr life</text>
+          <text x="0" y="170" class="d-muted">margin −3%</text>
+          <rect x="150" y="138" width="256" height="34" rx="4" class="c2-fill"><title>Depreciation, 4-yr life: $0.86 per available hour</title></rect>
+          <rect x="408" y="138" width="76" height="34" class="c-neutral"><title>Interest: $0.26</title></rect>
+          <rect x="486" y="138" width="79" height="34" class="c-neutral"><title>Data-center lease: $0.27</title></rect>
+          <rect x="567" y="138" width="28" height="34" class="c-neutral"><title>Power: $0.10</title></rect>
+          <rect x="597" y="138" width="45" height="34" rx="4" class="c-neutral"><title>Ops &amp; staff: $0.15</title></rect>
+          <g text-anchor="middle" class="d-num">
+            <text x="278" y="159" style="fill:#fff">$0.86</text><text x="446" y="159">$0.26</text><text x="525.5" y="159">$0.27</text>
+          </g>
+          <text x="650" y="159" class="d-num">−$0.04</text>
+
+          <line x1="150" y1="194" x2="690" y2="194" class="d-axis"/>
+          <g class="d-muted" text-anchor="middle">
+            <text x="150" y="210">$0</text><text x="300" y="210">$0.50</text><text x="450" y="210">$1.00</text><text x="600" y="210">$1.50</text>
+          </g>
+          <text x="690" y="230" text-anchor="end" class="d-muted">$ per available GPU-hour</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig. 3</b>My illustrative model, not company data. Assumptions: $30k all-in cost per GPU (server plus networking), $2.00/hr committed price, 80% utilization, 70% debt-financed at 11%, 1.3 kW per GPU including cooling at $0.08/kWh, colocation at $150/kW-month, and $0.15/hr for ops. The only thing that changes between the two rows is the depreciation life. Both rows show about a 68% EBITDA margin, because EBITDA excludes depreciation and interest.</figcaption>
+      <details>
+        <summary class="table-toggle">show as table</summary>
+        <table>
+          <tr><th>$ / available GPU-hour</th><th>6-yr life</th><th>4-yr life</th></tr>
+          <tr><td>Revenue ($2.00 × 80%)</td><td>1.60</td><td>1.60</td></tr>
+          <tr><td>Depreciation</td><td>0.57</td><td>0.86</td></tr>
+          <tr><td>Interest</td><td>0.26</td><td>0.26</td></tr>
+          <tr><td>Data-center lease</td><td>0.27</td><td>0.27</td></tr>
+          <tr><td>Power</td><td>0.10</td><td>0.10</td></tr>
+          <tr><td>Ops &amp; staff</td><td>0.15</td><td>0.15</td></tr>
+          <tr><td>Pre-tax profit</td><td>+0.25 (16%)</td><td>−0.04 (−3%)</td></tr>
+          <tr><td>EBITDA margin</td><td>~68%</td><td>~68%</td></tr>
+        </table>
+      </details>
+    </figure>
+
+    <div class="prose">
+      <p>The toy model reproduces what analysts see in the real numbers. Kerrisdale's model of CoreWeave's GB200 fleet shows a ~20% EBIT margin under its six-year depreciation life and 87% utilization, falling to near zero at four to five years (cited in Luminix, 2026). CoreWeave's adjusted operating margin went from 19% in 2024 to 13% in 2025 to 1% in Q1 2026 as new fleets started depreciating (Daloopa, 2026). Debt-financed clusters reportedly need around 70% utilization just to cover depreciation and interest.</p>
+      <p>So the honest summary of the neocloud model is: <strong>EBITDA is real, profit depends on an accounting estimate</strong>, namely how many years a GPU keeps earning, and the debt has to be repaid on a fixed schedule regardless.</p>
+
+      <h2 id="tokens"><span class="n">05</span>Inside the token business</h2>
+      <p>One level up, the lab buys GPU-hours and sells tokens. Its gross margin is roughly:</p>
+    </div>
+    <blockquote class="pull">gross margin ≈ 1 − (cost per GPU-hour) ÷ (tokens per GPU-hour × price per token)</blockquote>
+    <div class="prose">
+      <p>Every lever in the token business moves one of those three terms:</p>
+      <ul>
+        <li><strong>Tokens per GPU-hour</strong> is engineering: batching many users onto one GPU, caching shared prompts, speculative decoding, quantization, and distilling big models into smaller ones. This is where inference platforms like Fireworks earn their premium.</li>
+        <li><strong>Price per token</strong> is segmentation. a16z found that the price of a <em>fixed</em> level of capability falls roughly 10× per year ("LLMflation"), and iCapital notes that GPT-3-level performance went from ~$60 to ~$0.06 per million tokens between 2021 and 2024. Frontier models don't follow that curve: labs keep a premium tier and a cheap tier, and price them very differently.</li>
+        <li><strong>Cost per GPU-hour</strong> is procurement: long contracts are cheaper than last-minute capacity. OpenAI's 2025 margin miss was partly blamed on buying expensive compute at short notice to meet demand.</li>
+      </ul>
+      <p>Then there are the non-paying users. Reportedly around 95% of ChatGPT users don't pay. Their tokens are a real cost, which is one reason "gross margin" at a consumer lab is so much lower than the API economics alone would suggest.</p>
+      <p>Finally, falling prices don't necessarily mean falling revenue. Reasoning models and agents burn far more tokens per task. One investor framework found hidden reasoning was a third to nearly 60% of tokens in a legal-analysis workload. Cheaper tokens, more of them: the question is which effect wins.</p>
+
+      <h2 id="loop"><span class="n">06</span>How the money circles back</h2>
+      <p>If you only drew Fig. 1, you'd miss the strangest part of the tokenomy: a lot of the money flowing <em>down</em> the stack started <em>at the bottom</em>.</p>
+    </div>
+
+    <figure class="fig">
+      <div class="fig-frame">
+        <svg viewBox="0 0 720 322" role="img" aria-label="Circular money flows. OpenAI signs about 300 billion dollars of compute with Oracle and 22.4 billion with CoreWeave. Oracle and CoreWeave buy GPUs from Nvidia. Microsoft is CoreWeave's largest customer. Nvidia invests in OpenAI, holds equity in CoreWeave and agreed to buy 6.3 billion dollars of its unused capacity.">
+          <defs>
+            <marker id="t4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="c1-fill"/></marker>
+            <marker id="t4b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="c2-fill"/></marker>
+          </defs>
+          <!-- spend (violet) -->
+          <line x1="300" y1="54" x2="164" y2="129" class="c1-line" marker-end="url(#t4a)"/>
+          <line x1="425" y1="52" x2="556" y2="129" class="c1-line" marker-end="url(#t4a)"/>
+          <line x1="150" y1="170" x2="298" y2="249" class="c1-line" marker-end="url(#t4a)"/>
+          <line x1="565" y1="170" x2="420" y2="249" class="c1-line" marker-end="url(#t4a)"/>
+          <line x1="610" y1="60" x2="610" y2="128" class="c1-line" marker-end="url(#t4a)"/>
+          <!-- capital back (teal) -->
+          <line x1="360" y1="250" x2="360" y2="62" class="c2-line" marker-end="url(#t4b)"/>
+          <line x1="426" y1="262" x2="594" y2="172" class="c2-line" marker-end="url(#t4b)"/>
+
+          <rect x="295" y="21" width="130" height="38" rx="10" class="d-hot"/><text x="360" y="45" text-anchor="middle" class="d-strong">OpenAI</text>
+          <rect x="545" y="21" width="130" height="38" rx="10" class="d-box"/><text x="610" y="45" text-anchor="middle" class="d-strong">Microsoft</text>
+          <rect x="45" y="131" width="130" height="38" rx="10" class="d-box"/><text x="110" y="155" text-anchor="middle" class="d-strong">Oracle</text>
+          <rect x="545" y="131" width="130" height="38" rx="10" class="d-box"/><text x="610" y="155" text-anchor="middle" class="d-strong">CoreWeave</text>
+          <rect x="295" y="251" width="130" height="38" rx="10" class="d-hot"/><text x="360" y="275" text-anchor="middle" class="d-strong">Nvidia</text>
+
+          <text x="205" y="76" text-anchor="end" class="d-text">~$300B compute</text>
+          <text x="205" y="91" text-anchor="end" class="d-muted">over ~5 yrs (WSJ)</text>
+          <text x="512" y="112" text-anchor="end" class="d-text">$22.4B</text>
+          <text x="512" y="127" text-anchor="end" class="d-muted">contracts</text>
+          <text x="618" y="90" class="d-muted">62% of</text>
+          <text x="618" y="104" class="d-muted">2024 rev.</text>
+          <text x="214" y="226" text-anchor="end" class="d-text">buys GPUs</text>
+          <text x="460" y="214" text-anchor="end" class="d-text">buys GPUs</text>
+          <text x="370" y="150" class="d-text">invests</text>
+          <text x="370" y="165" class="d-muted">(up to $100B LOI)</text>
+          <text x="520" y="236" class="d-text">equity + $6.3B</text>
+          <text x="520" y="251" class="d-muted">capacity backstop</text>
+
+          <line x1="0" y1="312" x2="28" y2="312" class="c1-line"/><text x="36" y="316" class="d-muted">pays for compute or chips</text>
+          <line x1="250" y1="312" x2="278" y2="312" class="c2-line"/><text x="286" y="316" class="d-muted">invests or guarantees (capital flowing back)</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig. 4</b>A simplified map of the loop, showing only some of the publicly reported deals: OpenAI–Oracle (WSJ, Sep 2025), OpenAI–CoreWeave, Nvidia's capacity backstop for CoreWeave through 2032, and Nvidia's letter of intent to invest up to $100B in OpenAI. How much of that headline figure has actually been deployed is reported differently across sources. Bloomberg's interactive graphic maps the full web.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <p>Read the arrows as a loop. Nvidia invests in OpenAI. OpenAI commits hundreds of billions to Oracle and CoreWeave. Those clouds borrow against the contracts to buy Nvidia GPUs. Nvidia also owns part of CoreWeave and has agreed to buy up to $6.3B of any capacity CoreWeave can't sell, through April 2032. The same underlying spending shows up as an investment, a contract backlog, and chip revenue.</p>
+      <p>Is this a scam? Most careful commentators say no. Noah Smith argues it looks like ordinary <em>vendor financing</em>, like a carmaker lending customers money to buy its cars. Revenue really does flow one way, and it makes sense for a cash-rich supplier to help a capital-constrained customer. But he also argues that it ties everyone's fortunes together: the deals reduce each company's individual risk while increasing the system's exposure to an AI downturn (Smith, 2025). The money also flows back to model companies in a quieter way. Venture capital funds apps, apps spend it on tokens, and those token purchases show up as lab revenue.</p>
+
+      <h2 id="paper"><span class="n">07</span>Why every layer looks profitable</h2>
+      <p>Put the pieces together and you get a puzzle. Nearly every company in the chain reports something that looks like a healthy margin, yet the system as a whole is spending far more than it earns. Four mechanisms reconcile the two:</p>
+      <ul>
+        <li><strong>Different yardsticks.</strong> Neoclouds lead with adjusted EBITDA (~56%), labs with gross margin, and chipmakers with GAAP gross margin. Each figure is true and none of them is comparable.</li>
+        <li><strong>Accounting estimates.</strong> A six-year GPU life versus a four-year life is the difference between profit and loss (Fig. 3). Meta's move to a 5.5-year life for servers shows that even hyperscalers are still guessing.</li>
+        <li><strong>Backlog counted before cash.</strong> Remaining performance obligations look like future revenue, but they depend on the customer still being able to pay in 2029.</li>
+        <li><strong>External capital at the top.</strong> The final buyer is often funded by investors, not customers. Every layer below books real revenue from money that started as someone's funding round.</li>
+      </ul>
+      <p>The system-level check is the one Sequoia's David Cahn proposed in 2024. Take Nvidia's data-center run rate, double it to cover the rest of the data center, then double again to leave the end user's vendor a margin. That gave a ~$600B annual revenue bar the industry needed to clear (Cahn, 2024). Korea Invest's 2026 version makes the same point as an "inverted pyramid": roughly $60–100B of annual model and app revenue sitting on top of ~$300B of GPU run-rate revenue and ~$725B of hyperscaler capex (Shin, 2026). The industry is building capacity for demand it expects, not demand it has. That's not necessarily wrong, since railways and fiber were built the same way, but it means the timing carries the risk.</p>
+
+      <h2 id="press"><span class="n">08</span>What the press is saying right now</h2>
+      <p>A quick map of recent coverage, in roughly the order I'd read it:</p>
+      <ul>
+        <li><strong>Fortune (Oct 16, 2026)</strong> lays out the bull case for CoreWeave from one of its investors: noncancelable take-or-pay contracts with high-credit customers back the debt. Alongside it are the numbers that worry people: $35.6B of debt plus $16.3B of leases, and a BB+ rating. Gartner expects 80% of neoclouds to stop operating independently by 2030 (Edwards, 2026).</li>
+        <li><strong>CNBC (Oct 14, 2026)</strong> reports traders piling into "bubble puts" on CoreWeave as neocloud stocks slide.</li>
+        <li><strong>Axios (Oct 16, 2026)</strong> reports banks pulling back. Citing the FT, it says global AI-related debt issuance fell to $23B in September from $113B in June.</li>
+        <li><strong>Bloomberg</strong> built the definitive visual of the circular deals, and separately reported the end of Microsoft's revenue share to OpenAI.</li>
+        <li><strong>iCapital (Jul 2026)</strong> and <strong>Korea Invest (Jul 2026)</strong> are the two best "whole-stack" explainers: profit pools by layer, and value added per dollar.</li>
+        <li><strong>Noah Smith (Oct 2025)</strong> is the clearest argument that circular deals are vendor financing, not fraud, while still being a systemic risk.</li>
+        <li><strong>SemiAnalysis</strong>'s "AI Neocloud Playbook and Anatomy" (2024) is still the deepest operator-level teardown of neocloud cost of ownership (paywalled).</li>
+        <li><strong>Sequoia's "AI's $600B Question"</strong> (2024) is the original framing of the revenue gap.</li>
+      </ul>
+
+      <h2 id="watch"><span class="n">09</span>What to watch</h2>
+      <ul>
+        <li><strong>GPU useful life.</strong> If H100s are still earning money in 2029, the six-year schedules were right and neoclouds are fine. If Blackwell and its successors make them uneconomic sooner, the losses show up all at once.</li>
+        <li><strong>Utilization and spot prices.</strong> Contracts protect the big players, but the spot market is the early warning. Watch whether one-year commitment prices keep diverging from on-demand prices.</li>
+        <li><strong>The refinancing wall.</strong> Tens of billions of GPU-backed loans across CoreWeave, Nebius, Lambda and Crusoe come due in 2026–2028. This month's bond market is a preview.</li>
+        <li><strong>Price per token vs. tokens per task.</strong> If agents and reasoning keep multiplying token volume faster than prices fall, the top of the pyramid fills in.</li>
+        <li><strong>End-user revenue.</strong> In the end, every margin in this post is paid out of what businesses and consumers are willing to pay for answers. That number is growing fast. The question is whether it grows fast enough.</li>
+      </ul>
+      <p>The tokenomy is not a Ponzi scheme, and it's not a sure thing. It's a supply chain being built ahead of its demand, financed by its own suppliers, with an accounting estimate holding up the middle. That's a fascinating thing to watch. I'll update this post as the numbers come in.</p>
+    </div>
+
+    <section class="sources" id="citation">
+      <h3>CITATION</h3>
+      <p>Please cite this work as:</p>
+      <pre class="code-card">Zhou, Ziqi. (Oct 2026). "Tokenomy: Following a Dollar from GPU to Token". ziqi-zhou02.github.io.
+https://ziqi-zhou02.github.io/posts/tokenomy.html</pre>
+      <p>Or use the BibTeX citation:</p>
+      <pre class="code-card">@article{zhou2026tokenomy,
+  title   = "Tokenomy: Following a Dollar from GPU to Token",
+  author  = "Zhou, Ziqi",
+  journal = "ziqi-zhou02.github.io",
+  year    = "2026",
+  month   = "Oct",
+  url     = "https://ziqi-zhou02.github.io/posts/tokenomy.html"
+}</pre>
+      <h3 style="margin-top:28px">REFERENCES</h3>
+      <ol>
+        <li>Edwards, J. <a href="https://fortune.com/2026/10/16/coreweave-investor-explains-ai-neocloud-debt/" target="_blank" rel="noopener">"CoreWeave investor explains how the loss-making AI 'neocloud' provider will claw its way out of debt."</a> Fortune, Oct 16, 2026.</li>
+        <li>CNBC. <a href="https://www.cnbc.com/2026/10/14/coreweave-put-options-ai-trade.html" target="_blank" rel="noopener">"Traders pile into 'bubble puts' on CoreWeave as neocloud stocks plunge."</a> Oct 14, 2026.</li>
+        <li>Axios. <a href="https://axios.com/2026/10/16/wall-street-limit-ai-spending-debt" target="_blank" rel="noopener">"Banks are pulling back as AI's massive debt pile disconnects from economic reality."</a> Oct 16, 2026.</li>
+        <li>Bloomberg. <a href="https://www.bloomberg.com/graphics/2026-ai-circular-deals/" target="_blank" rel="noopener">"AI Circular Deals: How Microsoft, OpenAI and Nvidia Keep Paying Each Other."</a> 2026.</li>
+        <li>Bloomberg. <a href="https://www.bloomberg.com/news/articles/2026-04-27/microsoft-to-stop-sharing-revenue-with-main-ai-partner-openai" target="_blank" rel="noopener">"Microsoft to Stop Sharing Revenue With Main AI Partner OpenAI."</a> Apr 27, 2026.</li>
+        <li>Bloomberg. <a href="https://www.bloomberg.com/news/articles/2025-09-15/coreweave-says-nvidia-cloud-contract-valued-at-6-3-billion" target="_blank" rel="noopener">"CoreWeave Says Nvidia Cloud Contract Valued at $6.3 Billion."</a> Sep 15, 2025.</li>
+        <li>Shin, Y. <a href="https://koreainvestinsights.substack.com/p/ai-token-value-today-and-tomorrow" target="_blank" rel="noopener">"AI Token Value Today and Tomorrow: Value Added for Memory Companies."</a> Korea Invest Insights, Jul 9, 2026.</li>
+        <li>iCapital Investment Strategy Group. <a href="https://icapital.com/insights/investment-market-strategy/icapital-market-pulse-tokenomics-the-economics-of-the-ai-boom/" target="_blank" rel="noopener">"Tokenomics: The Economics of the AI Boom."</a> Jul 31, 2026.</li>
+        <li>Daloopa. <a href="https://daloopa.com/blog/analyst-pov/nebius-vs-coreweave-neoclouds-financial-analysis-daloopa-mcp-sourced" target="_blank" rel="noopener">"Nebius vs. CoreWeave: Two Neoclouds, Two Reporting Frameworks."</a> 2026.</li>
+        <li>Luminix. <a href="https://www.useluminix.com/reports/industry-analysis/deep-dive-on-the-neocloud-gpu-rental-industry-coreweave-lambda-crusoe" target="_blank" rel="noopener">"Neocloud GPU Rental Industry: CoreWeave, Risks &amp; Returns"</a> (citing Kerrisdale Capital). 2026.</li>
+        <li>NVIDIA. <a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000019/q4fy26pr.htm" target="_blank" rel="noopener">"Financial Results for Fourth Quarter and Fiscal 2026"</a> (Form 8-K). 2026.</li>
+        <li>BigGo Finance. <a href="https://finance.biggo.com/news/mRiPlZwBTwP6zY3HRxp-" target="_blank" rel="noopener">"OpenAI and Anthropic Miss Gross Margin Targets as Inference Costs Skyrocket"</a> (summarizing The Information). 2026.</li>
+        <li>Introl. <a href="https://introl.com/blog/gpu-cloud-price-collapse-h100-market-december-2025" target="_blank" rel="noopener">"GPU Cloud Prices Collapse: H100 Rental Drops 64% as Supply Catches Demand."</a> Dec 2025.</li>
+        <li>Tunguz, T. <a href="https://tomtunguz.com/gross-profit-per-token/" target="_blank" rel="noopener">"Gross Profit per Token."</a> Dec 30, 2025.</li>
+        <li>Sacra. <a href="https://sacra.com/c/fireworks-ai/" target="_blank" rel="noopener">Fireworks AI</a> and <a href="https://sacra.com/c/together-ai/" target="_blank" rel="noopener">Together AI</a> company profiles (analyst estimates).</li>
+        <li>Appenzeller, G. <a href="https://www.a16z.com/llmflation-llm-inference-cost" target="_blank" rel="noopener">"Welcome to LLMflation: LLM inference cost is going down fast."</a> a16z, Nov 2024.</li>
+        <li>Smith, N. <a href="https://www.noahpinion.blog/p/should-we-worry-about-ais-circular" target="_blank" rel="noopener">"Should We Worry About AI's Circular Deals?"</a> Noahpinion, Oct 22, 2025.</li>
+        <li>Cahn, D. "AI's $600B Question." Sequoia Capital, Jun 2024. (<a href="https://www.tomshardware.com/tech-industry/artificial-intelligence/ai-industry-needs-to-earn-dollar600-billion-per-year-to-pay-for-massive-hardware-spend-fears-of-an-ai-bubble-intensify-in-wake-of-sequoia-report" target="_blank" rel="noopener">coverage</a>)</li>
+        <li>Patel, D. &amp; Nishball, D. <a href="https://newsletter.semianalysis.com/p/ai-neocloud-playbook-and-anatomy" target="_blank" rel="noopener">"AI Neocloud Playbook and Anatomy."</a> SemiAnalysis, Oct 2024.</li>
+        <li>The Register. <a href="https://www.theregister.com/2025/09/11/openai_reportedly_on_the_hook/" target="_blank" rel="noopener">"OpenAI reportedly on the hook for $300B Oracle Cloud bill"</a> (reporting the WSJ). Sep 11, 2025.</li>
+      </ol>
+    </section>
+  </article>
+
+  <footer class="footer">
+    <span>© <span id="year"></span> Ziqi Zhou</span>
+    <a class="muted" href="#top" onclick="scrollTo({top:0,behavior:'smooth'});return false;">back to top ↑</a>
+  </footer>
+
+  <script src="../assets/main.js"></script>
+</body>
+</html>

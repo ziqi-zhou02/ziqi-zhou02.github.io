@@ -12,6 +12,8 @@
   --accent-dim: rgba(167, 139, 250, 0.14);
   --grad: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 100%);
   --on-accent: #120d22;
+  --chart-1: #9478f0;         /* validated pair (dark surface) */
+  --chart-2: #1fa896;
   --glow-a: rgba(139, 92, 246, 0.30);
   --glow-b: rgba(236, 72, 153, 0.16);
   --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -32,6 +34,8 @@
   --accent-2: #c026d3;
   --accent-dim: rgba(124, 58, 237, 0.09);
   --on-accent: #ffffff;
+  --chart-1: #7c3aed;
+  --chart-2: #0f9f8f;
   --glow-a: rgba(167, 139, 250, 0.28);
   --glow-b: rgba(240, 171, 252, 0.22);
 }
@@ -390,6 +394,21 @@ main { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(16px, 5vw, 48px)
 .d-arrow { fill: var(--muted); }
 .d-arrow-hot { fill: var(--accent); }
 .d-arrow-pink { fill: var(--accent-2); }
+.c1-line { stroke: var(--chart-1); stroke-width: 2; fill: none; }
+.c2-line { stroke: var(--chart-2); stroke-width: 2; fill: none; }
+.c1-fill { fill: var(--chart-1); }
+.c2-fill { fill: var(--chart-2); }
+.c-neutral { fill: color-mix(in srgb, var(--muted) 45%, var(--bg-2)); }
+.c1-ghost { fill: color-mix(in srgb, var(--chart-1) 12%, transparent); stroke: var(--chart-1); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.d-rule { stroke: var(--fg-strong); stroke-width: 1.5; stroke-dasharray: 5 4; fill: none; }
+.d-axis { stroke: var(--line); stroke-width: 1; }
+.d-num { fill: var(--fg-strong); font: 600 11.5px var(--mono); }
+.fig svg rect[data-tip]:hover, .fig svg g[data-tip]:hover rect { opacity: .85; }
+.fig .table-toggle { font: 12px var(--mono); color: var(--muted); margin: 10px 4px 0; cursor: pointer; width: fit-content; }
+.fig .table-toggle:hover { color: var(--accent); }
+.fig table { width: 100%; border-collapse: collapse; font: 12.5px var(--mono); margin-top: 10px; }
+.fig th, .fig td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); color: var(--fg); }
+.fig th { color: var(--muted); font-weight: 500; }
 
 .sources { margin-top: 64px; padding-top: 22px; border-top: 1px solid var(--line); font: 14px/1.7 var(--sans); color: var(--muted); }
 .sources h3 { font: 600 12px var(--mono); color: var(--fg-strong); letter-spacing: .06em; margin: 0 0 8px; }
