@@ -11,7 +11,7 @@
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:opsz,wght@6..72,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
   <script>
     // Apply saved theme before paint to avoid a flash.
@@ -19,17 +19,19 @@
   </script>
 </head>
 <body>
+  <div class="aurora" aria-hidden="true"></div>
   <!-- custom cursor (desktop only) -->
   <div class="cursor-dot" aria-hidden="true"></div>
   <div class="cursor-ring" aria-hidden="true"></div>
   <canvas id="fx" aria-hidden="true"></canvas>
 
   <header class="nav">
-    <a href="#top" class="logo" data-scramble>~/ziqi</a>
+    <a href="#top" class="logo" data-scramble>~/<span class="accent">ziqi</span></a>
     <nav>
       <a href="#about" data-scramble><span class="num">01.</span>about</a>
       <a href="#projects" data-scramble><span class="num">02.</span>projects</a>
-      <a href="#contact" data-scramble><span class="num">03.</span>contact</a>
+      <a href="#writing" data-scramble><span class="num">03.</span>writing</a>
+      <a href="#contact" data-scramble><span class="num">04.</span>contact</a>
       <button class="icon-btn" id="term-open" title="Terminal (press /)">&gt;_</button>
       <button class="icon-btn" id="theme-toggle" title="Toggle theme">◐</button>
     </nav>
@@ -115,9 +117,27 @@
       </div>
     </section>
 
+    <!-- ============ WRITING ============ -->
+    <section id="writing" class="section reveal">
+      <h2 class="section-title"><span class="num">03.</span>writing</h2>
+      <!-- 新文章：复制一个 <li>，链接到 posts/ 下的新 html -->
+      <ul class="posts">
+        <li class="post-item">
+          <a href="posts/one-owner-many-agents.html">
+            <span class="post-date">2026.10.17</span>
+            <div>
+              <h3>One Owner, Many Agents</h3>
+              <p>The future of organizations: why context flows better when one person, working with agents, owns the whole loop.</p>
+            </div>
+            <span class="post-arrow">→</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
     <!-- ============ CONTACT ============ -->
     <section id="contact" class="section contact reveal">
-      <h2 class="section-title"><span class="num">03.</span>contact</h2>
+      <h2 class="section-title"><span class="num">04.</span>contact</h2>
       <p class="contact-lead">My inbox is always open — say hi.</p>
       <!-- TODO: 换成你的邮箱 / 社交链接 -->
       <div class="cta">

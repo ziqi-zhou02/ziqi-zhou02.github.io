@@ -5,12 +5,15 @@
   const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const accent = () => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
 
-  $('#year').textContent = new Date().getFullYear();
+  const year = $('#year');
+  if (year) year.textContent = new Date().getFullYear();
 
   /* ---------- typing effect: edit ROLES to change the rotating lines ---------- */
   const ROLES = ['student & builder', 'machine learning tinkerer', 'web developer', 'lifelong learner'];
   const typed = $('#typed');
-  if (reduceMotion) {
+  if (!typed) {
+    // not the home page
+  } else if (reduceMotion) {
     typed.textContent = ROLES[0];
   } else {
     let r = 0, i = 0, deleting = false;
@@ -59,6 +62,16 @@
     nav.classList.toggle('hidden', y > lastY && y > 200);
     lastY = y;
   }, { passive: true });
+
+  /* ---------- reading progress (blog posts) ---------- */
+  const progress = $('.progress');
+  if (progress) {
+    const upd = () => {
+      const h = document.documentElement.scrollHeight - innerHeight;
+      progress.style.width = `${h > 0 ? (scrollY / h) * 100 : 0}%`;
+    };
+    addEventListener('scroll', upd, { passive: true }); upd();
+  }
 
   /* ---------- reveal on scroll ---------- */
   const io = new IntersectionObserver(entries => {
@@ -152,6 +165,7 @@
 
   /* ---------- mini terminal ---------- */
   const term = $('#term'), body = $('#term-body'), input = $('#term-cmd');
+  if (!term) return;
   const history = []; let hIdx = 0;
   const print = (html, cls = 'out') => {
     const div = document.createElement('div'); div.className = cls; div.innerHTML = html;
@@ -159,15 +173,17 @@
   };
   const goto = id => { closeTerm(); $(id).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' }); };
   const COMMANDS = {
-    help: () => print('available commands:\n  about      jump to about\n  projects   list projects\n  contact    jump to contact\n  github     open github profile\n  theme      toggle light / dark\n  whoami     who is this?\n  clear      clear screen\n  exit       close terminal'),
+    help: () => print('available commands:\n  about      jump to about\n  projects   list projects\n  writing    list blog posts\n  contact    jump to contact\n  github     open github profile\n  theme      toggle light / dark\n  whoami     who is this?\n  clear      clear screen\n  exit       close terminal'),
     about: () => goto('#about'),
     contact: () => goto('#contact'),
     projects: () => print($$('.card h3').map((h, k) => `  [${k}] ${h.textContent}`).join('\n') + '\n\ntype "projects go" to scroll there'),
     'projects go': () => goto('#projects'),
+    writing: () => print($$('.post-item').map(li => `  ${li.querySelector('.post-date').textContent}  <a class="hi" href="${li.querySelector('a').getAttribute('href')}">${li.querySelector('h3').textContent}</a>`).join('\n')),
+    blog: () => COMMANDS.writing(),
     github: () => { open('https://github.com/ziqi-zhou02', '_blank', 'noopener'); print('opening github…'); },
     theme: () => { $('#theme-toggle').click(); print(`theme → ${document.documentElement.dataset.theme}`); },
     whoami: () => print('ziqi zhou — ' + ROLES.join(' / ')),
-    ls: () => print('about/  projects/  contact/  README.md'),
+    ls: () => print('about/  projects/  writing/  contact/  README.md'),
     'cat readme.md': () => print('# hi 👋\nthanks for poking around. try "help".'),
     sudo: () => print('nice try. this incident will be reported.', 'err'),
     clear: () => { body.innerHTML = ''; },
@@ -175,7 +191,7 @@
   };
   const openTerm = () => {
     term.hidden = false;
-    if (!body.childElementCount) print('welcome. type <span style="color:#5af78e">help</span> to see commands.');
+    if (!body.childElementCount) print('welcome. type <span class="hi">help</span> to see commands.');
     setTimeout(() => input.focus(), 0);
   };
   const closeTerm = () => { term.hidden = true; };
@@ -186,7 +202,7 @@
     const raw = input.value.trim(); input.value = '';
     if (!raw) return;
     history.push(raw); hIdx = history.length;
-    print(`<span style="color:#5af78e">$</span> ${raw.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}`, '');
+    print(`<span class="hi">$</span> ${raw.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}`, '');
     const cmd = raw.toLowerCase();
     (COMMANDS[cmd] || COMMANDS[cmd.split(' ')[0]] || (() => print(`command not found: ${cmd.split(' ')[0].replace(/[&<>]/g, '')}`, 'err')))();
   });

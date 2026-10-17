@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>One Owner, Many Agents</title>
+  <meta name="description" content="How AI agents reshape the org chart: from functional teams and handoffs to single owners, shared context, and contracts.">
+  <meta property="og:title" content="One Owner, Many Agents">
+  <meta property="og:description" content="Notes on the future of organizations: why context flows better when one person owns the loop.">
+  <link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+  <script>
+    try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="progress" aria-hidden="true"></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+  <div class="cursor-ring" aria-hidden="true"></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <header class="nav">
+    <a href="../" class="logo" data-scramble>~/<span class="accent">ziqi</span></a>
+    <nav>
+      <a href="../#projects" data-scramble><span class="num">02.</span>projects</a>
+      <a href="../#writing" data-scramble><span class="num">03.</span>writing</a>
+      <button class="icon-btn" id="theme-toggle" title="Toggle theme">◐</button>
+    </nav>
+  </header>
+
+  <article class="article">
+    <a class="back" href="../#writing">← all writing</a>
+
+    <div class="article-meta">
+      <span>Oct 17, 2026</span><span>·</span><span>~9 min read</span><span>·</span><span>Ziqi Zhou</span><span>·</span><span class="tag">#org-design #agents</span>
+    </div>
+    <h1>One Owner, Many Agents</h1>
+    <p class="dek">Notes on the future of organizations: what happens to the org chart when one person, working with agents, can cover product, modeling and engineering?</p>
+
+    <div class="tldr">
+      <b>TL;DR</b>
+      <ul>
+        <li>Functional teams were built because implementation hours were scarce. Handoffs were the price we paid.</li>
+        <li>With agents, one owner can run a scoped project end to end. Context stays inside one loop instead of leaking at each handoff.</li>
+        <li>Large products get reorganized into owner-led slices that sit on a thin shared platform.</li>
+        <li>People coordinate through contracts and written decisions, not relays. Agents share a small, curated context layer.</li>
+      </ul>
+    </div>
+
+    <nav class="tldr" aria-label="Table of contents">
+      <b>CONTENTS</b>
+      <ul>
+        <li><a href="#old-shape">The old shape: built for handoffs</a></li>
+        <li><a href="#new-shape">The new shape: one owner, many agents</a></li>
+        <li><a href="#context">Why context flows better</a></li>
+        <li><a href="#reorg">Reorganizing a large product</a></li>
+        <li><a href="#humans">How people should work together</a></li>
+        <li><a href="#agents">What agents need to share</a></li>
+        <li><a href="#risks">What could go wrong</a></li>
+        <li><a href="#citation">Citation</a></li>
+      </ul>
+    </nav>
+
+    <div class="prose">
+      <p>For most of the history of software, the org chart has been a workaround for one hard constraint. Nobody can hold the whole stack in their head and also have the hours to build it. So we split work by function (product, algorithms, frontend, backend) and paid for that split with handoffs.</p>
+      <p>Agents loosen that constraint. If one person can direct agents that write the training code, the API and the UI, the basic unit of organization shifts from the <em>function</em> to the <em>owner</em>. This post sketches what that looks like, why it works (mostly: context), and what has to change around it. Treat it as a set of working hypotheses, not a report.</p>
+
+      <h2 id="old-shape"><span class="n">01</span>The old shape: built for handoffs</h2>
+      <p>Picture a typical ML product team: one PM, a designer, three algorithm engineers, one frontend engineer and one backend engineer. The PM talks to users and writes a spec. The algorithm engineers turn the spec into experiments. Backend wraps the model in an API, and frontend ships the UI. Every arrow in that pipeline is a translation, and every translation loses something.</p>
+      <p>Brooks pointed out the cost fifty years ago: <em>n</em> people have <em>n(n−1)/2</em> potential communication channels (Brooks, 1975). Seven people already have 21. Much of a PM's week goes into keeping those channels in sync, through standups, spec reviews and "quick syncs."</p>
+    </div>
+
+    <figure class="fig">
+      <div class="fig-frame">
+        <svg viewBox="0 0 720 295" role="img" aria-label="Before: seven people in a functional team form 21 communication channels, with the PM relaying intent. After: one owner directs four agents that share a single context.">
+          <defs>
+            <marker id="f1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-arrow-hot"/></marker>
+          </defs>
+          <text x="0" y="18" class="d-muted">BEFORE · functional team</text>
+          <text x="380" y="18" class="d-muted">AFTER · owner + agents</text>
+          <line x1="360" y1="8" x2="360" y2="285" class="d-faint"/>
+
+          <!-- all 21 channels -->
+          <g class="d-faint">
+            <line x1="240" y1="94" x2="258" y2="170"/><line x1="240" y1="94" x2="209" y2="231"/><line x1="240" y1="94" x2="131" y2="231"/>
+            <line x1="240" y1="94" x2="82" y2="170"/><line x1="240" y1="94" x2="100" y2="94"/><line x1="258" y1="170" x2="209" y2="231"/>
+            <line x1="258" y1="170" x2="131" y2="231"/><line x1="258" y1="170" x2="82" y2="170"/><line x1="258" y1="170" x2="100" y2="94"/>
+            <line x1="209" y1="231" x2="131" y2="231"/><line x1="209" y1="231" x2="82" y2="170"/><line x1="209" y1="231" x2="100" y2="94"/>
+            <line x1="131" y1="231" x2="82" y2="170"/><line x1="131" y1="231" x2="100" y2="94"/><line x1="82" y1="170" x2="100" y2="94"/>
+          </g>
+          <!-- PM relays intent -->
+          <g class="d-line">
+            <line x1="170" y1="60" x2="240" y2="94"/><line x1="170" y1="60" x2="258" y2="170"/><line x1="170" y1="60" x2="209" y2="231"/>
+            <line x1="170" y1="60" x2="131" y2="231"/><line x1="170" y1="60" x2="82" y2="170"/><line x1="170" y1="60" x2="100" y2="94"/>
+          </g>
+          <rect x="143" y="48" width="54" height="24" rx="6" class="d-hot"/><text x="170" y="64" text-anchor="middle" class="d-strong">PM</text>
+          <rect x="213" y="82" width="54" height="24" rx="6" class="d-box"/><text x="240" y="98" text-anchor="middle" class="d-text">algo</text>
+          <rect x="231" y="158" width="54" height="24" rx="6" class="d-box"/><text x="258" y="174" text-anchor="middle" class="d-text">algo</text>
+          <rect x="182" y="219" width="54" height="24" rx="6" class="d-box"/><text x="209" y="235" text-anchor="middle" class="d-text">algo</text>
+          <rect x="104" y="219" width="54" height="24" rx="6" class="d-box"/><text x="131" y="235" text-anchor="middle" class="d-text">FE</text>
+          <rect x="55" y="158" width="54" height="24" rx="6" class="d-box"/><text x="82" y="174" text-anchor="middle" class="d-text">BE</text>
+          <rect x="70" y="82" width="60" height="24" rx="6" class="d-box"/><text x="100" y="98" text-anchor="middle" class="d-text">design</text>
+          <text x="170" y="280" text-anchor="middle" class="d-text">7 people · 21 channels</text>
+
+          <!-- after: owner + agents on a shared-context ring -->
+          <circle cx="550" cy="150" r="90" class="d-dash"/>
+          <text x="626" y="84" class="d-muted">shared context</text>
+          <line x1="550" y1="134" x2="550" y2="76" class="d-accent-line" marker-end="url(#f1a)"/>
+          <line x1="595" y1="150" x2="601" y2="150" class="d-accent-line" marker-end="url(#f1a)"/>
+          <line x1="550" y1="166" x2="550" y2="224" class="d-accent-line" marker-end="url(#f1a)"/>
+          <line x1="505" y1="150" x2="499" y2="150" class="d-accent-line" marker-end="url(#f1a)"/>
+          <text x="558" y="110" class="d-muted">brief · review</text>
+          <rect x="505" y="134" width="90" height="32" rx="8" class="d-hot"/><text x="550" y="154" text-anchor="middle" class="d-strong">owner</text>
+          <rect x="512" y="48" width="76" height="24" rx="6" class="d-pink"/><text x="550" y="64" text-anchor="middle" class="d-text">product</text>
+          <rect x="603" y="138" width="76" height="24" rx="6" class="d-pink"/><text x="641" y="154" text-anchor="middle" class="d-text">model</text>
+          <rect x="512" y="228" width="76" height="24" rx="6" class="d-pink"/><text x="550" y="244" text-anchor="middle" class="d-text">backend</text>
+          <rect x="421" y="138" width="76" height="24" rx="6" class="d-pink"/><text x="459" y="154" text-anchor="middle" class="d-text">frontend</text>
+          <text x="550" y="280" text-anchor="middle" class="d-text">1 owner · 4 agents · 1 context</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig. 1</b>Left: a functional team of seven has 21 possible channels, and intent reaches engineers only through the PM. Right: one owner briefs and reviews agents (pink) that all read from the same context, so there's only one thing to keep in sync.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <p>The ratio of many algorithm engineers to one PM made sense when experiments were expensive: a PM's judgement was cheap compared with the engineering hours needed to test it. That ratio is flipping. When agents run the experiments and write the glue code, implementation hours stop being the bottleneck. The bottleneck becomes judgement: what to build, and whether it's good.</p>
+
+      <h2 id="new-shape"><span class="n">02</span>The new shape: one owner, many agents</h2>
+      <p>The alternative that's emerging: one person owns a project end to end. The owner acts as PM, algorithm engineer and full-stack engineer. That isn't because they're an expert at everything. Agents do most of the execution in each role, and the owner supplies direction, taste and review.</p>
+      <p>This is already partly visible. Anthropic describes data scientists with little JavaScript experience building full React apps to visualize model performance, and non-engineering teams building their own tools (Anthropic, 2025a). Amazon's <em>single-threaded owner</em>, one leader focused on one thing (Bryar &amp; Carr, 2021), is being pushed down from the leadership level to the individual contributor.</p>
+    </div>
+
+    <blockquote class="pull">The scarce resource is no longer implementation hours. It's judgement, and judgement doesn't survive a handoff well.</blockquote>
+
+    <div class="prose">
+      <h2 id="context"><span class="n">03</span>Why context flows better</h2>
+      <p>The main argument for the owner model isn't speed. It's <strong>context fidelity</strong>. Figure 2 is a cartoon of the difference.</p>
+    </div>
+
+    <figure class="fig">
+      <div class="fig-frame">
+        <svg viewBox="0 0 720 270" role="img" aria-label="Handoff chain: user need passes through PM, spec and engineer before shipping, losing context at each hop, with feedback taking weeks. Owner loop: user need goes to the owner, who briefs agents; context stays high and feedback takes hours.">
+          <defs>
+            <marker id="f2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-arrow"/></marker>
+            <marker id="f2h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-arrow-hot"/></marker>
+          </defs>
+          <text x="0" y="18" class="d-head">Handoff chain</text>
+          <text x="104" y="18" class="d-muted">context is re-translated at every hop</text>
+          <rect x="0" y="32" width="104" height="40" rx="8" class="d-box"/><text x="52" y="56" text-anchor="middle" class="d-strong">user need</text>
+          <rect x="0" y="80" width="104" height="4" rx="2" class="d-track"/><rect x="0" y="80" width="104" height="4" rx="2" class="d-arrow-hot"/>
+          <rect x="154" y="32" width="104" height="40" rx="8" class="d-box"/><text x="206" y="56" text-anchor="middle" class="d-strong">PM</text>
+          <rect x="154" y="80" width="104" height="4" rx="2" class="d-track"/><rect x="154" y="80" width="81" height="4" rx="2" class="d-arrow-hot"/>
+          <rect x="308" y="32" width="104" height="40" rx="8" class="d-box"/><text x="360" y="56" text-anchor="middle" class="d-strong">spec</text>
+          <rect x="308" y="80" width="104" height="4" rx="2" class="d-track"/><rect x="308" y="80" width="62" height="4" rx="2" class="d-arrow-hot"/>
+          <rect x="462" y="32" width="104" height="40" rx="8" class="d-box"/><text x="514" y="56" text-anchor="middle" class="d-strong">engineer</text>
+          <rect x="462" y="80" width="104" height="4" rx="2" class="d-track"/><rect x="462" y="80" width="48" height="4" rx="2" class="d-arrow-hot"/>
+          <rect x="616" y="32" width="104" height="40" rx="8" class="d-box"/><text x="668" y="56" text-anchor="middle" class="d-strong">shipped</text>
+          <rect x="616" y="80" width="104" height="4" rx="2" class="d-track"/><rect x="616" y="80" width="37" height="4" rx="2" class="d-arrow-hot"/>
+          <line x1="107" y1="52" x2="151" y2="52" class="d-line" marker-end="url(#f2a)"/><text x="129" y="44" text-anchor="middle" class="d-muted">talk</text>
+          <line x1="261" y1="52" x2="305" y2="52" class="d-line" marker-end="url(#f2a)"/><text x="283" y="44" text-anchor="middle" class="d-muted">doc</text>
+          <line x1="415" y1="52" x2="459" y2="52" class="d-line" marker-end="url(#f2a)"/><text x="437" y="44" text-anchor="middle" class="d-muted">ticket</text>
+          <line x1="569" y1="52" x2="613" y2="52" class="d-line" marker-end="url(#f2a)"/><text x="591" y="44" text-anchor="middle" class="d-muted">PR</text>
+          <path d="M668 92 C668 120 52 120 52 94" class="d-line" marker-end="url(#f2a)"/>
+          <text x="360" y="128" text-anchor="middle" class="d-muted">feedback: weeks</text>
+
+          <text x="0" y="160" class="d-head">Owner loop</text>
+          <text x="88" y="160" class="d-muted">one head + one shared context</text>
+          <rect x="195" y="166" width="330" height="62" rx="12" class="d-dash"/>
+          <rect x="0" y="174" width="104" height="40" rx="8" class="d-box"/><text x="52" y="198" text-anchor="middle" class="d-strong">user need</text>
+          <rect x="0" y="222" width="104" height="4" rx="2" class="d-track"/><rect x="0" y="222" width="104" height="4" rx="2" class="d-arrow-hot"/>
+          <rect x="205" y="174" width="104" height="40" rx="8" class="d-hot"/><text x="257" y="198" text-anchor="middle" class="d-strong">owner</text>
+          <rect x="205" y="222" width="104" height="4" rx="2" class="d-track"/><rect x="205" y="222" width="99" height="4" rx="2" class="d-arrow-hot"/>
+          <rect x="411" y="174" width="104" height="40" rx="8" class="d-box"/><text x="463" y="198" text-anchor="middle" class="d-strong">agents</text>
+          <rect x="411" y="222" width="104" height="4" rx="2" class="d-track"/><rect x="411" y="222" width="94" height="4" rx="2" class="d-arrow-hot"/>
+          <rect x="616" y="174" width="104" height="40" rx="8" class="d-box"/><text x="668" y="198" text-anchor="middle" class="d-strong">shipped</text>
+          <rect x="616" y="222" width="104" height="4" rx="2" class="d-track"/><rect x="616" y="222" width="92" height="4" rx="2" class="d-arrow-hot"/>
+          <line x1="107" y1="194" x2="202" y2="194" class="d-accent-line" marker-end="url(#f2h)"/><text x="154.5" y="186" text-anchor="middle" class="d-muted">talks</text>
+          <line x1="312" y1="194" x2="408" y2="194" class="d-accent-line" marker-end="url(#f2h)"/><text x="360" y="186" text-anchor="middle" class="d-muted">brief</text>
+          <line x1="518" y1="194" x2="613" y2="194" class="d-accent-line" marker-end="url(#f2h)"/><text x="565.5" y="186" text-anchor="middle" class="d-muted">review</text>
+          <path d="M668 234 C668 258 257 258 257 232" class="d-accent-line" marker-end="url(#f2h)"/>
+          <text x="463" y="262" text-anchor="middle" class="d-muted">feedback: hours</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig. 2</b>An illustrative sketch, not measured data. The bar under each step shows roughly how much of the original user context is still intact there. The owner loop has fewer translations and a much shorter feedback cycle.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <ul>
+        <li><strong>No translation layer.</strong> The person who heard the user is the person who picks the loss function. A nuance like "users tolerate latency here, but hate confident wrong answers" doesn't have to survive a spec.</li>
+        <li><strong>Decisions and implementation share a loop.</strong> When an experiment surprises you, the product plan can change within the hour, with no re-prioritization meeting.</li>
+        <li><strong>Agents get better briefs.</strong> Anthropic found that subagents given vague task descriptions duplicated each other's work. The fix was a clear objective, an output format and explicit boundaries (Anthropic, 2025b). The person best placed to write that brief is the one holding the intent.</li>
+      </ul>
+      <p>You can read this as Conway's law run in reverse. If systems mirror the communication structure of the teams that build them (Conway, 1968), a product built inside one loop has fewer seams for errors to leak through.</p>
+
+      <h2 id="reorg"><span class="n">04</span>Reorganizing a large product</h2>
+      <p>One person can't own a search engine. Large products still need many people, so the real question is where to cut. My answer: cut by <strong>outcome</strong>, not by <strong>function</strong>.</p>
+    </div>
+
+    <figure class="fig">
+      <div class="fig-frame">
+        <svg viewBox="0 0 720 258" role="img" aria-label="Before: four functional layers, and one feature has to cross all four teams. After: four outcome slices, each with one owner and agents, built on a shared platform; one feature stays in one slice.">
+          <defs>
+            <marker id="f3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-arrow-hot"/></marker>
+          </defs>
+          <text x="0" y="18" class="d-muted">BEFORE · split by function</text>
+          <text x="380" y="18" class="d-muted">AFTER · split by outcome</text>
+          <line x1="360" y1="8" x2="360" y2="250" class="d-faint"/>
+
+          <rect x="0" y="36" width="330" height="34" rx="8" class="d-box"/><text x="14" y="57" class="d-text">product team</text>
+          <rect x="0" y="80" width="330" height="34" rx="8" class="d-box"/><text x="14" y="101" class="d-text">algorithm team</text>
+          <rect x="0" y="124" width="330" height="34" rx="8" class="d-box"/><text x="14" y="145" class="d-text">frontend team</text>
+          <rect x="0" y="168" width="330" height="34" rx="8" class="d-box"/><text x="14" y="189" class="d-text">backend team</text>
+          <line x1="250" y1="28" x2="250" y2="210" class="d-accent-line" marker-end="url(#f3a)"/>
+          <circle cx="250" cy="53" r="4.5" class="d-arrow-hot"/><circle cx="250" cy="97" r="4.5" class="d-arrow-hot"/>
+          <circle cx="250" cy="141" r="4.5" class="d-arrow-hot"/><circle cx="250" cy="185" r="4.5" class="d-arrow-hot"/>
+          <text x="262" y="122" class="d-muted">handoff</text>
+          <text x="165" y="238" text-anchor="middle" class="d-text">one feature crosses 4 teams</text>
+
+          <g>
+            <rect x="380" y="36" width="75" height="132" rx="8" class="d-hot"/>
+            <rect x="465" y="36" width="75" height="132" rx="8" class="d-box"/>
+            <rect x="550" y="36" width="75" height="132" rx="8" class="d-box"/>
+            <rect x="635" y="36" width="75" height="132" rx="8" class="d-box"/>
+            <text x="417.5" y="58" text-anchor="middle" class="d-strong">search</text>
+            <text x="502.5" y="58" text-anchor="middle" class="d-strong">recs</text>
+            <text x="587.5" y="58" text-anchor="middle" class="d-strong">checkout</text>
+            <text x="672.5" y="58" text-anchor="middle" class="d-strong">growth</text>
+          </g>
+          <g>
+            <rect x="389" y="74" width="57" height="22" rx="6" class="d-hot"/><text x="417.5" y="89" text-anchor="middle" class="d-text">owner</text>
+            <rect x="474" y="74" width="57" height="22" rx="6" class="d-hot"/><text x="502.5" y="89" text-anchor="middle" class="d-text">owner</text>
+            <rect x="559" y="74" width="57" height="22" rx="6" class="d-hot"/><text x="587.5" y="89" text-anchor="middle" class="d-text">owner</text>
+            <rect x="644" y="74" width="57" height="22" rx="6" class="d-hot"/><text x="672.5" y="89" text-anchor="middle" class="d-text">owner</text>
+          </g>
+          <g class="d-pink">
+            <circle cx="403" cy="120" r="6"/><circle cx="417.5" cy="120" r="6"/><circle cx="432" cy="120" r="6"/>
+            <circle cx="488" cy="120" r="6"/><circle cx="502.5" cy="120" r="6"/><circle cx="517" cy="120" r="6"/>
+            <circle cx="573" cy="120" r="6"/><circle cx="587.5" cy="120" r="6"/><circle cx="602" cy="120" r="6"/>
+            <circle cx="658" cy="120" r="6"/><circle cx="672.5" cy="120" r="6"/><circle cx="687" cy="120" r="6"/>
+          </g>
+          <text x="417.5" y="150" text-anchor="middle" class="d-muted">agents</text>
+          <text x="502.5" y="150" text-anchor="middle" class="d-muted">agents</text>
+          <text x="587.5" y="150" text-anchor="middle" class="d-muted">agents</text>
+          <text x="672.5" y="150" text-anchor="middle" class="d-muted">agents</text>
+          <g class="d-dash">
+            <line x1="455" y1="102" x2="465" y2="102"/><line x1="540" y1="102" x2="550" y2="102"/><line x1="625" y1="102" x2="635" y2="102"/>
+          </g>
+          <rect x="380" y="178" width="330" height="34" rx="8" class="d-box"/>
+          <text x="545" y="199" text-anchor="middle" class="d-text">platform: infra · data · evals · design</text>
+          <text x="545" y="238" text-anchor="middle" class="d-text">one feature stays in one slice</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig. 3</b>Left: with functional layers, every feature has to pass through every team. Right: outcome slices give each feature one owner (dashed links mark the contracts between slices), all sitting on a thin shared platform.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <ul>
+        <li><strong>Slices.</strong> Each slice (search ranking, recommendations, checkout, onboarding) gets one owner, a fleet of agents, and one metric the owner is accountable for. This is close to the <em>stream-aligned team</em> in Team Topologies (Skelton &amp; Pais, 2019), shrunk down to one person.</li>
+        <li><strong>A thin platform.</strong> Shared infrastructure, data, eval harnesses and the design system. The platform's customers now include agents, which means good docs, stable APIs and fast sandboxes matter more than ever.</li>
+        <li><strong>Fewer managers who route work, more who review it.</strong> Managers spend less time routing work and more time reviewing quality, pairing owners and setting the bar.</li>
+        <li><strong>Seams are contracts.</strong> Wherever two slices meet, the interface is explicit: an API schema, an event format, a shared metric definition.</li>
+      </ul>
+
+      <h2 id="humans"><span class="n">05</span>How people should work together</h2>
+      <p>When each person owns more, people coordinate less often, but each coordination point matters more. A few norms seem to help:</p>
+      <ul>
+        <li><strong>Contracts over meetings.</strong> Agree on interfaces and metrics in writing, then work independently.</li>
+        <li><strong>Write decisions down.</strong> A short decision log (what we chose, why, and what we rejected) can be read by colleagues <em>and</em> by agents.</li>
+        <li><strong>Review, don't relay.</strong> People add value by reviewing each other's work, not by carrying messages between other people.</li>
+        <li><strong>Demo early, async.</strong> A two-minute recorded demo beats a status meeting.</li>
+        <li><strong>Pair at the seams.</strong> When two slices have to change together, the two owners pair for a day instead of coordinating for a week.</li>
+      </ul>
+
+      <h2 id="agents"><span class="n">06</span>What agents need to share</h2>
+      <p>There's a tension here. Cognition argues that agents should share full context and full traces, because "actions carry implicit decisions," and decisions made with partial context tend to conflict (Yan, 2025). Anthropic, meanwhile, treats context as a finite resource to be curated down to the smallest high-signal set (Anthropic, 2025c). One way to reconcile the two: <strong>within a slice, share everything; across slices, share a small, distilled layer.</strong></p>
+    </div>
+
+    <figure class="fig">
+      <div class="fig-frame">
+        <svg viewBox="0 0 720 262" role="img" aria-label="Three owners, each with their own agents, linked to each other by contracts. All of them read from and write to a shared context layer with six parts: intent, decisions, contracts, evals, conventions and memory.">
+          <defs>
+            <marker id="f4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-arrow-hot"/></marker>
+            <marker id="f4p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-arrow-pink"/></marker>
+          </defs>
+          <rect x="40" y="6" width="150" height="50" rx="10" class="d-hot"/><text x="115" y="28" text-anchor="middle" class="d-strong">owner A</text><text x="115" y="45" text-anchor="middle" class="d-muted">+ agents</text>
+          <rect x="285" y="6" width="150" height="50" rx="10" class="d-hot"/><text x="360" y="28" text-anchor="middle" class="d-strong">owner B</text><text x="360" y="45" text-anchor="middle" class="d-muted">+ agents</text>
+          <rect x="530" y="6" width="150" height="50" rx="10" class="d-hot"/><text x="605" y="28" text-anchor="middle" class="d-strong">owner C</text><text x="605" y="45" text-anchor="middle" class="d-muted">+ agents</text>
+          <line x1="194" y1="31" x2="281" y2="31" class="d-dash" marker-start="url(#f4p)" marker-end="url(#f4p)"/>
+          <line x1="439" y1="31" x2="526" y2="31" class="d-dash" marker-start="url(#f4p)" marker-end="url(#f4p)"/>
+          <text x="237.5" y="24" text-anchor="middle" class="d-muted">contract</text>
+          <text x="482.5" y="24" text-anchor="middle" class="d-muted">contract</text>
+
+          <g class="d-accent-line">
+            <line x1="107" y1="60" x2="107" y2="106" marker-end="url(#f4a)"/><line x1="123" y1="106" x2="123" y2="60" marker-end="url(#f4a)"/>
+            <line x1="352" y1="60" x2="352" y2="106" marker-end="url(#f4a)"/><line x1="368" y1="106" x2="368" y2="60" marker-end="url(#f4a)"/>
+            <line x1="597" y1="60" x2="597" y2="106" marker-end="url(#f4a)"/><line x1="613" y1="106" x2="613" y2="60" marker-end="url(#f4a)"/>
+          </g>
+          <text x="133" y="88" class="d-muted">write · read</text>
+
+          <rect x="0" y="110" width="720" height="146" rx="14" class="d-box"/>
+          <text x="16" y="134" class="d-head">Shared context layer</text>
+          <text x="704" y="134" text-anchor="end" class="d-muted">small, curated, versioned</text>
+          <g>
+            <rect x="17" y="148" width="106" height="92" rx="8" class="d-slot"/>
+            <rect x="133" y="148" width="106" height="92" rx="8" class="d-slot"/>
+            <rect x="249" y="148" width="106" height="92" rx="8" class="d-slot"/>
+            <rect x="365" y="148" width="106" height="92" rx="8" class="d-slot"/>
+            <rect x="481" y="148" width="106" height="92" rx="8" class="d-slot"/>
+            <rect x="597" y="148" width="106" height="92" rx="8" class="d-slot"/>
+          </g>
+          <text x="70" y="178" text-anchor="middle" class="d-strong">intent</text>
+          <text x="186" y="178" text-anchor="middle" class="d-strong">decisions</text>
+          <text x="302" y="178" text-anchor="middle" class="d-strong">contracts</text>
+          <text x="418" y="178" text-anchor="middle" class="d-strong">evals</text>
+          <text x="534" y="178" text-anchor="middle" class="d-strong">conventions</text>
+          <text x="650" y="178" text-anchor="middle" class="d-strong">memory</text>
+          <text x="70" y="202" text-anchor="middle" class="d-muted">goals,</text><text x="70" y="218" text-anchor="middle" class="d-muted">non-goals</text>
+          <text x="186" y="202" text-anchor="middle" class="d-muted">what + why,</text><text x="186" y="218" text-anchor="middle" class="d-muted">what rejected</text>
+          <text x="302" y="202" text-anchor="middle" class="d-muted">APIs, schemas,</text><text x="302" y="218" text-anchor="middle" class="d-muted">metric defs</text>
+          <text x="418" y="202" text-anchor="middle" class="d-muted">tests, golden</text><text x="418" y="218" text-anchor="middle" class="d-muted">sets, dashboards</text>
+          <text x="534" y="202" text-anchor="middle" class="d-muted">repo rules,</text><text x="534" y="218" text-anchor="middle" class="d-muted">CLAUDE.md</text>
+          <text x="650" y="202" text-anchor="middle" class="d-muted">what we tried,</text><text x="650" y="218" text-anchor="middle" class="d-muted">what failed</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig. 4</b>Owners coordinate with each other through explicit contracts (pink). Their agents read from and write to a small shared layer. Raw traces stay inside each slice; only distilled artifacts cross over.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <p>In practice, the six slots break down like this:</p>
+      <ul>
+        <li><strong>Intent:</strong> the goal, the non-goals, and who the user is. Without it, agents optimize the wrong thing very efficiently.</li>
+        <li><strong>Decisions:</strong> what was decided and why, including the alternatives that were rejected, so nobody has to reopen them.</li>
+        <li><strong>Contracts:</strong> API schemas, event formats, metric definitions. This is the only part another slice is allowed to depend on.</li>
+        <li><strong>Evals:</strong> the shared definition of "good." If two slices measure quality differently, they will drift apart.</li>
+        <li><strong>Conventions:</strong> coding style and repo rules, often written in a file agents read first (e.g. <code>CLAUDE.md</code>).</li>
+        <li><strong>Memory:</strong> what was tried and didn't work. It's the cheapest way to stop an agent from repeating someone else's dead end.</li>
+      </ul>
+
+      <h2 id="risks"><span class="n">07</span>What could go wrong</h2>
+      <ul>
+        <li><strong>A bus factor of one.</strong> If the owner disappears, the context goes with them. Mitigations: the decision log, and a buddy owner who reviews the slice every week.</li>
+        <li><strong>Breadth without depth.</strong> An owner can ship a model they don't really understand. Keep deep experts as a shared review resource, not as a stage in the pipeline.</li>
+        <li><strong>Burnout.</strong> Owning everything is heavy. Scope slices so one person can actually carry them, and split a slice before it breaks its owner.</li>
+        <li><strong>Drift across slices.</strong> Shared evals and the design system are the guardrails. Invest in them first.</li>
+      </ul>
+      <p>The org chart is starting to look like a software architecture. Owners are services, contracts are APIs, and the shared context layer is the database. That may not be a coincidence: we're finally organizing people the way we learned to organize code. I'd like to revisit these notes in a year and see which of them held up.</p>
+    </div>
+
+    <section class="sources" id="citation">
+      <h3>CITATION</h3>
+      <p>Please cite this work as:</p>
+      <pre class="code-card">Zhou, Ziqi. (Oct 2026). "One Owner, Many Agents". ziqi-zhou02.github.io.
+https://ziqi-zhou02.github.io/posts/one-owner-many-agents.html</pre>
+      <p>Or use the BibTeX citation:</p>
+      <pre class="code-card">@article{zhou2026owner,
+  title   = "One Owner, Many Agents",
+  author  = "Zhou, Ziqi",
+  journal = "ziqi-zhou02.github.io",
+  year    = "2026",
+  month   = "Oct",
+  url     = "https://ziqi-zhou02.github.io/posts/one-owner-many-agents.html"
+}</pre>
+      <h3 style="margin-top:28px">REFERENCES</h3>
+      <ol>
+        <li>Brooks, F. P. <em>The Mythical Man-Month</em>. Addison-Wesley, 1975.</li>
+        <li>Conway, M. E. <a href="https://www.melconway.com/Home/Committees_Paper.html" target="_blank" rel="noopener">"How Do Committees Invent?"</a> Datamation, 1968.</li>
+        <li>Skelton, M. &amp; Pais, M. <em>Team Topologies</em>. IT Revolution, 2019.</li>
+        <li>Bryar, C. &amp; Carr, B. <em>Working Backwards</em>. St. Martin's Press, 2021.</li>
+        <li>Anthropic. <a href="https://www.anthropic.com/news/how-anthropic-teams-use-claude-code" target="_blank" rel="noopener">"How Anthropic teams use Claude Code."</a> 2025a.</li>
+        <li>Anthropic. <a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank" rel="noopener">"How we built our multi-agent research system."</a> Jun 2025b.</li>
+        <li>Anthropic. <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener">"Effective context engineering for AI agents."</a> Sep 2025c.</li>
+        <li>Yan, W. <a href="https://cognition.com/blog/dont-build-multi-agents" target="_blank" rel="noopener">"Don't Build Multi-Agents."</a> Cognition, Jun 2025.</li>
+      </ol>
+    </section>
+  </article>
+
+  <footer class="footer">
+    <span>© <span id="year"></span> Ziqi Zhou</span>
+    <a class="muted" href="#top" onclick="scrollTo({top:0,behavior:'smooth'});return false;">back to top ↑</a>
+  </footer>
+
+  <script src="../assets/main.js"></script>
+</body>
+</html>

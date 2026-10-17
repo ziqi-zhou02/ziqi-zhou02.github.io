@@ -1,10 +1,11 @@
 # ziqi-zhou02.github.io
 
-Personal site — minimal, dark, terminal-flavoured. Pure HTML/CSS/JS, no build step.
+Personal site — minimal, dark, violet, terminal-flavoured. Includes a small blog (`posts/`). Pure HTML/CSS/JS, no build step.
 Live at **https://ziqi-zhou02.github.io** (GitHub Pages, deployed from `main`).
 
 Design inspired by [bchiang7/v4](https://github.com/bchiang7/v4) and
-[lilweb-template](https://github.com/Cod-e-Codes/lilweb-template); code written from scratch.
+[lilweb-template](https://github.com/Cod-e-Codes/lilweb-template); blog layout inspired by
+Thinking Machines' *Connectionism* and Lilian Weng's *Lil'Log*. Code written from scratch.
 
 ## 怎么改内容
 
@@ -15,6 +16,7 @@ Design inspired by [bchiang7/v4](https://github.com/bchiang7/v4) and
 | 打字机轮播的身份标签 | `assets/main.js` 顶部的 `ROLES` |
 | 颜色 / 字体 | `assets/style.css` 顶部的 `:root` 变量 |
 | 终端命令 | `assets/main.js` 里的 `COMMANDS` |
+| 写新博客 | 复制 `posts/one-owner-many-agents.html` 改内容，再在 `index.html` 的 writing 区复制一个 `<li class="post-item">` 指过去 |
 
 ## 交互彩蛋
 
