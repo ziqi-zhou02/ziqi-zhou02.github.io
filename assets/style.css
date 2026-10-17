@@ -441,3 +441,51 @@ main { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(16px, 5vw, 48px)
   html { scroll-behavior: auto; }
   .reveal, .cards .card { opacity: 1; transform: none; }
 }
+
+/* ---------- landscape map (blog figure) ---------- */
+.fig-wide { margin-left: -80px; margin-right: -80px; }
+.lsc { font: 12.5px var(--sans); }
+.lsc-row {
+  display: grid; grid-template-columns: 150px minmax(0, 1fr) 236px; gap: 14px;
+  align-items: stretch; border-top: 1px solid var(--line);
+}
+.lsc-row:nth-child(2) { border-top: 0; }
+.lsc-head { border-top: 0; font: 11px var(--mono); color: var(--muted); padding-bottom: 6px; }
+.lsc-layer { display: flex; flex-direction: column; justify-content: center; padding: 10px 0; }
+.lsc-layer b { color: var(--fg-strong); font-weight: 600; font-size: 13px; }
+.lsc-layer span { font: 11px var(--mono); color: var(--accent); margin-top: 2px; }
+.lsc-layer span.na { color: var(--muted); }
+.lsc-head .lsc-layer span, .lsc-head .lsc-cos span { color: var(--muted); }
+.lsc-cos { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 10px 0; }
+.lsc-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.lsc-gl { font: 10.5px var(--mono); color: var(--muted); margin-right: 2px; }
+.co {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 7px;
+  background: var(--bg-3); border: 1px solid var(--line); color: var(--fg-strong); white-space: nowrap;
+  transition: border-color .2s, transform .2s;
+}
+.co:hover { border-color: var(--accent); transform: translateY(-1px); }
+.co .ic {
+  width: 13px; height: 13px; flex: none; background: currentColor;
+  -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat;
+}
+.lsc-int { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+.lsc-head .lsc-int span { font-size: 10px; align-self: end; }
+.lsc-cell { position: relative; display: flex; align-items: center; justify-content: center; }
+.lsc-cell.top::before, .lsc-cell.mid::before, .lsc-cell.bot::before {
+  content: ""; position: absolute; left: 50%; width: 2px; margin-left: -1px; background: var(--chart-1); opacity: .45;
+}
+.lsc-cell.top::before { top: 50%; bottom: -1px; }
+.lsc-cell.mid::before { top: -1px; bottom: -1px; }
+.lsc-cell.bot::before { top: -1px; bottom: 50%; }
+.lsc-cell .dot {
+  position: relative; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--chart-1); box-shadow: 0 0 0 2px var(--bg-2); cursor: default;
+}
+@media (max-width: 1000px) { .fig-wide { margin-left: -40px; margin-right: -40px; } }
+@media (max-width: 860px) { .fig-wide { margin-left: 0; margin-right: 0; } }
+@media (max-width: 760px) {
+  .lsc-row { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .lsc-int, .lsc-head { display: none; }
+  .lsc-layer { flex-direction: row; justify-content: flex-start; gap: 10px; align-items: baseline; padding-bottom: 0; }
+}
