@@ -21,10 +21,10 @@
       <svg class="scene" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#17121f"/><stop offset=".7" stop-color="#211830"/><stop offset="1" stop-color="#2a1e3a"/>
+            <stop offset="0" class="w1"/><stop offset=".7" class="w2"/><stop offset="1" class="w3"/>
           </linearGradient>
           <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#07061a"/><stop offset=".55" stop-color="#1a1240"/><stop offset=".85" stop-color="#3a1f63"/><stop offset="1" stop-color="#5a2a6e"/>
+            <stop offset="0" class="s1"/><stop offset=".55" class="s2"/><stop offset=".85" class="s3"/><stop offset="1" class="s4"/>
           </linearGradient>
           <radialGradient id="horizon" cx=".5" cy="1" r=".7">
             <stop offset="0" stop-color="#ff6fd8" stop-opacity=".35"/><stop offset="1" stop-color="#ff6fd8" stop-opacity="0"/>
@@ -65,7 +65,9 @@
         <!-- window + city (city is generated in room.js into #city) -->
         <g clip-path="url(#glass)">
           <rect x="320" y="70" width="960" height="540" fill="url(#sky)"/>
-          <ellipse cx="800" cy="610" rx="700" ry="260" fill="url(#horizon)"/>
+          <ellipse cx="800" cy="610" rx="700" ry="260" fill="url(#horizon)" class="horizon"/>
+          <circle class="moon" cx="1150" cy="150" r="40" fill="#f3eefe" opacity=".12"/><circle class="moon" cx="1150" cy="150" r="22" fill="#f3eefe"/>
+          <circle class="sun" cx="450" cy="190" r="36" fill="#ffd9a0"/>
           <g id="city"></g>
         </g>
         <g fill="#2b2037">
@@ -198,7 +200,7 @@
         </g>
 
         <!-- keyboard (→ menu) -->
-        <g class="hot" data-action="ch:0" data-label="keyboard · menu (0)" tabindex="0">
+        <g class="hot" data-action="term" data-label="keyboard · open terminal (T)" tabindex="0">
           <rect x="652" y="752" width="304" height="70" rx="9" fill="#2a2532"/>
           <rect x="664" y="760" width="282" height="46" fill="url(#keys)"/>
           <rect x="736" y="806" width="120" height="10" rx="3" fill="#463f55"/>
@@ -248,11 +250,20 @@
     </nav>
   </header>
   <div class="hud-bottom">
-    <span class="hint">1–4 channels · Z zoom · L lamp · M sound · Esc back</span>
+    <span class="hint">1–4 channels · T terminal · Z zoom · L lamp · M sound · N sky · Esc back</span>
+    <button class="pill" id="creditsBtn">ⓘ CREDITS</button>
     <a class="pill" href="lofi.html">≡ LO-FI</a>
     <button class="pill" id="soundBtn">♪ SOUND OFF</button>
   </div>
   <div class="tip" id="tip" role="status"></div>
+  <div class="hud-left" id="phaseLabel"></div>
+  <div class="credits" id="credits" hidden>
+    <b>CREDITS</b>
+    <p>Inspired by <a href="https://felixrieseberg.com/?room=1" target="_blank" rel="noopener">Felix Rieseberg's room</a>.</p>
+    <p>Everything here is drawn in SVG and generated in the browser: the skyline, the rain, the TV static and the sound.</p>
+    <p>Fonts: VT323, Inter, JetBrains Mono and Caveat via Google Fonts.</p>
+    <p class="dim">press N to change the sky, R to stop the rain</p>
+  </div>
 
   <!-- content for the TV channels (kept in the page so it's readable without JS) -->
   <template id="ch-0">

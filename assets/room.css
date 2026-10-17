@@ -155,3 +155,65 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .stage { transition: none; }
   .screen, #steam path, #powerLed, .spin { animation: none; }
 }
+
+/* ---------------- time of day ---------------- */
+body {
+  --s1: #07061a; --s2: #1a1240; --s3: #3a1f63; --s4: #5a2a6e;
+  --w1: #17121f; --w2: #211830; --w3: #2a1e3a;
+  --b1: #1d1533; --b2: #191129; --b3: #120c1f;
+  --wins: 1; --neon: 1; --moon: 1; --sun: 0; --horizon: 1;
+}
+body[data-phase="dusk"] {
+  --s1: #1b1450; --s2: #4d2a7a; --s3: #b4507d; --s4: #f0956b;
+  --w1: #1d1524; --w2: #281b33; --w3: #33223f;
+  --b1: #3a2550; --b2: #2c1c42; --b3: #1d1230;
+  --wins: .8; --neon: 1; --moon: 0; --sun: 0; --horizon: 1;
+}
+body[data-phase="dawn"] {
+  --s1: #24305e; --s2: #6a5aa8; --s3: #e09ab4; --s4: #ffd1a8;
+  --w1: #221b2d; --w2: #2d2238; --w3: #382a45;
+  --b1: #4a4068; --b2: #3a3258; --b3: #2a2342;
+  --wins: .35; --neon: .25; --moon: 0; --sun: .9; --horizon: .6;
+}
+body[data-phase="day"] {
+  --s1: #6f6a8f; --s2: #8c86a8; --s3: #aaa3c2; --s4: #c9c2dc;
+  --w1: #2b2337; --w2: #362b44; --w3: #413350;
+  --b1: #8e88a8; --b2: #77708f; --b3: #5e5878;
+  --wins: .08; --neon: 0; --moon: 0; --sun: 0; --horizon: .2;
+}
+.s1 { stop-color: var(--s1); } .s2 { stop-color: var(--s2); } .s3 { stop-color: var(--s3); } .s4 { stop-color: var(--s4); }
+.w1 { stop-color: var(--w1); } .w2 { stop-color: var(--w2); } .w3 { stop-color: var(--w3); }
+.b1 { fill: var(--b1); } .b2 { fill: var(--b2); } .b3 { fill: var(--b3); }
+.b1, .b2, .b3, .s1, .s2, .s3, .s4, .w1, .w2, .w3 { transition: fill 1.2s, stop-color 1.2s; }
+.wins { opacity: var(--wins); transition: opacity 1.2s; }
+.neon { opacity: var(--neon); }
+.moon { opacity: var(--moon); transition: opacity 1.2s; }
+.sun { opacity: var(--sun); transition: opacity 1.2s; }
+.horizon { opacity: var(--horizon); transition: opacity 1.2s; }
+.hud-left {
+  position: fixed; left: clamp(12px, 2vw, 28px); bottom: 22px; z-index: 10;
+  font: 12px var(--mono); color: rgba(236, 232, 255, .75); text-shadow: 0 1px 6px rgba(0, 0, 0, .9);
+}
+
+/* ---------------- credits ---------------- */
+.credits {
+  position: fixed; right: clamp(12px, 2vw, 28px); bottom: 64px; z-index: 30; width: min(340px, calc(100vw - 24px));
+  padding: 16px 18px; border-radius: 12px; font: 12.5px/1.6 var(--mono);
+  background: rgba(14, 10, 22, .92); border: 1px solid rgba(167, 139, 250, .35); backdrop-filter: blur(8px);
+}
+.credits b { font: 18px var(--retro); letter-spacing: .14em; }
+.credits p { margin: 8px 0 0; color: rgba(236, 232, 255, .85); }
+.credits a { color: var(--orchid); border-bottom: 1px solid rgba(240, 171, 252, .4); }
+.credits .dim { color: rgba(236, 232, 255, .55); }
+
+/* ---------------- CRT terminal ---------------- */
+.tv .term { font-size: 5cqi; line-height: 1.3; }
+.tv .term #termOut div { white-space: pre-wrap; word-break: break-word; }
+.tv .term .pr { color: var(--orchid); margin-right: 1.5cqi; }
+.tv .term form { display: flex; align-items: baseline; }
+.tv .term input {
+  flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--tv-ink);
+  font: inherit; caret-color: var(--orchid); text-shadow: inherit;
+}
+.tape-ghost { pointer-events: none; transform-box: fill-box; transform-origin: center; }
+@media (max-width: 760px) { .hud-left { display: none; } }

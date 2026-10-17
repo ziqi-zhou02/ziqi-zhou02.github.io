@@ -44,17 +44,18 @@
   /* ---------------- the city outside ---------------- */
   const city = $('#city');
   const lights = [];
-  const layer = (color, minTop, maxTop, minW, maxW, litRate, warm) => {
+  const layer = (cls, minTop, maxTop, minW, maxW, litRate, warm) => {
     const g = el('g', {}, city);
+    const gb = el('g', { class: cls }, g), gw = el('g', { class: 'wins' }, g);
     let x = 300;
     while (x < 1300) {
       const w = minW + rnd() * (maxW - minW), top = minTop + rnd() * (maxTop - minTop);
-      el('rect', { x: x.toFixed(1), y: top.toFixed(1), width: w.toFixed(1), height: (640 - top).toFixed(1), fill: color }, g);
+      el('rect', { x: x.toFixed(1), y: top.toFixed(1), width: w.toFixed(1), height: (640 - top).toFixed(1) }, gb);
       for (let wy = top + 10; wy < 600; wy += 14) {
         for (let wx = x + 6; wx < x + w - 8; wx += 11) {
           if (rnd() < litRate) {
             const c = warm && rnd() < 0.7 ? '#ffcf8a' : '#c4b5fd';
-            lights.push(el('rect', { x: wx.toFixed(1), y: wy.toFixed(1), width: 5, height: 7, fill: c, opacity: (0.35 + rnd() * 0.55).toFixed(2) }, g));
+            lights.push(el('rect', { x: wx.toFixed(1), y: wy.toFixed(1), width: 5, height: 7, fill: c, opacity: (0.35 + rnd() * 0.55).toFixed(2) }, gw));
           }
         }
       }
@@ -62,13 +63,13 @@
     }
     return g;
   };
-  layer('#1d1533', 360, 470, 40, 90, 0.05, false);
-  layer('#191129', 250, 430, 36, 80, 0.12, true);
-  layer('#120c1f', 380, 520, 50, 120, 0.18, true);
+  layer('b1', 360, 470, 40, 90, 0.05, false);
+  layer('b2', 250, 430, 36, 80, 0.12, true);
+  layer('b3', 380, 520, 50, 120, 0.18, true);
   // a neon sign and a blinking light on the skyline
-  const neon = el('text', { x: 1010, y: 404, 'font-family': 'Inter', 'font-weight': 700, 'font-size': 30, 'letter-spacing': 3, fill: '#f0abfc', filter: 'url(#neon)', class: 'neon-sign' }, city);
+  const neon = el('text', { x: 1010, y: 404, 'font-family': 'Inter', 'font-weight': 700, 'font-size': 30, 'letter-spacing': 3, fill: '#f0abfc', filter: 'url(#neon)', class: 'neon' }, city);
   neon.textContent = 'NEOCLOUD';
-  el('rect', { x: 1000, y: 376, width: 190, height: 38, fill: 'none', stroke: '#f0abfc', 'stroke-width': 2, opacity: .5, filter: 'url(#neon)' }, city);
+  el('rect', { x: 1000, y: 376, width: 190, height: 38, fill: 'none', stroke: '#f0abfc', 'stroke-width': 2, opacity: .5, filter: 'url(#neon)', class: 'neon' }, city);
   const beacon = el('circle', { cx: 488, cy: 252, r: 4, fill: '#ff5f7a', filter: 'url(#neon)' }, city);
   if (!reduceMotion) {
     setInterval(() => { const l = lights[(rnd() * lights.length) | 0]; if (l) l.setAttribute('opacity', rnd() < 0.5 ? '0.08' : (0.4 + rnd() * 0.5).toFixed(2)); }, 700);
@@ -91,6 +92,11 @@
   });
 
   /* ---------------- layout: cover + zoom ---------------- */
+  // Parallax: the room drifts a little with the pointer and the city drifts the other way,
+  // which reads as depth even though everything is flat.
+  const parallaxOn = !reduceMotion && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const par = { x: 0, y: 0, tx: 0, ty: 0 };
+  let zoomAnimUntil = 0;
   const layout = (animate = true) => {
     const vw = innerWidth, vh = innerHeight;
     let s, tx, ty;
@@ -100,15 +106,31 @@
       tx = vw / 2 - s * (SCREEN.x + SCREEN.w / 2);
       ty = 70 + availH / 2 - s * (SCREEN.y + SCREEN.h / 2);
     } else {
-      s = Math.max(vw / 1600, vh / 1000);
+      s = Math.max(vw / 1600, vh / 1000) * (parallaxOn ? 1.03 : 1);
       tx = Math.min(0, Math.max(vw - 1600 * s, vw / 2 - s * FOCUS.x));
       ty = Math.min(0, Math.max(vh - 1000 * s, vh / 2 - s * FOCUS.y));
+      const mx = Math.min(-tx, 1600 * s - vw - (-tx)), my = Math.min(-ty, 1000 * s - vh - (-ty));
+      tx += Math.max(-mx, Math.min(mx, -par.x * 14));
+      ty += Math.max(-my, Math.min(my, -par.y * 8));
     }
     stage.classList.toggle('no-anim', !animate);
     stage.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
   };
   addEventListener('resize', () => layout(false));
-  const setZoom = on => { state.zoom = on; layout(true); };
+  const setZoom = on => { state.zoom = on; zoomAnimUntil = performance.now() + 950; layout(true); };
+  if (parallaxOn) {
+    addEventListener('pointermove', e => { par.tx = e.clientX / innerWidth * 2 - 1; par.ty = e.clientY / innerHeight * 2 - 1; });
+    const loop = () => {
+      const dx = par.tx - par.x, dy = par.ty - par.y;
+      if (Math.abs(dx) + Math.abs(dy) > 0.001) {
+        par.x += dx * 0.06; par.y += dy * 0.06;
+        city.setAttribute('transform', `translate(${(par.x * 22).toFixed(2)} ${(par.y * 8).toFixed(2)})`);
+        if (!state.zoom && performance.now() > zoomAnimUntil) layout(false);
+      }
+      requestAnimationFrame(loop);
+    };
+    loop();
+  }
 
   /* ---------------- TV ---------------- */
   const staticCanvas = $('#static'), sctx = staticCanvas.getContext('2d');
@@ -150,6 +172,18 @@
     const t = TAPES.find(x => x.id === id);
     if (!t) return;
     $$('.tape').forEach(g => g.classList.toggle('inserted', g.dataset.tape === id));
+    const src = $(`.tape[data-tape="${id}"]`);
+    if (src && !reduceMotion) {
+      const bb = src.getBBox(), ghost = src.cloneNode(true);
+      ghost.removeAttribute('tabindex'); ghost.setAttribute('class', 'tape-ghost');
+      src.parentNode.appendChild(ghost);
+      const dx = 715 - (bb.x + bb.width / 2), dy = 675 - (bb.y + bb.height / 2);
+      ghost.animate([
+        { transform: 'translate(0,0) scale(1)', opacity: 1 },
+        { transform: `translate(${dx * 0.6}px, ${dy - 60}px) scale(.9)`, opacity: 1, offset: .55 },
+        { transform: `translate(${dx}px, ${dy}px) scale(.82)`, opacity: 0 }
+      ], { duration: 700, easing: 'cubic-bezier(.5,0,.3,1)' }).onfinish = () => ghost.remove();
+    }
     const ext = t.href.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
     show(`<div class="tape-view"><h2>${t.title}</h2><p class="dim">${t.meta}</p><p>${t.text}</p><a class="btn" href="${t.href}"${ext}>${t.cta}</a></div>`, t.kind === 'post' ? 'VHS · ESSAY' : 'VHS · PROJECT');
     $('#osdLeft').textContent = '▶ VHS';
@@ -216,9 +250,72 @@
     else if (action === 'lamp') { setLamp(!state.lamp); say(state.lamp ? 'click. light on' : 'click. moody now', x, y); }
     else if (action === 'plant') { const l = $('#leaves'); l.classList.remove('wiggle'); void l.getBBox(); l.classList.add('wiggle'); say('watered. it looks happier', x, y); }
     else if (action === 'mug') { const s = $('#steam'); s.style.opacity = 0.9; setTimeout(() => (s.style.opacity = ''), 1200); say('still warm', x, y); }
+    else if (action === 'term') openTerminal();
     else if (action === 'next') { setChannel(state.ch && state.ch < 4 ? state.ch + 1 : 1); }
     else if (action === 'zoom') { if (state.ch === null) setChannel(0); else setZoom(!state.zoom); }
     else if (action === 'sound') { setSound(!state.sound); say(state.sound ? 'rain + lo-fi, generated live' : 'quiet again', x, y); }
+  };
+
+  /* ---------------- time of day (follows the visitor's clock) ---------------- */
+  const PHASES = ['dawn', 'day', 'dusk', 'night'];
+  const phaseFor = h => (h >= 5 && h < 8 ? 'dawn' : h >= 8 && h < 17 ? 'day' : h >= 17 && h < 20 ? 'dusk' : 'night');
+  let phaseOverride = null;
+  const setPhase = ph => {
+    document.body.dataset.phase = ph;
+    const d = new Date(), hh = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
+    $('#phaseLabel').textContent = phaseOverride ? `${ph} · press N to cycle` : `your time ${hh}:${mm} · ${ph}`;
+  };
+  const cyclePhase = () => {
+    const cur = document.body.dataset.phase;
+    phaseOverride = PHASES[(PHASES.indexOf(cur) + 1) % 4];
+    setPhase(phaseOverride);
+  };
+  setPhase(phaseFor(new Date().getHours()));
+  setInterval(() => { if (!phaseOverride) setPhase(phaseFor(new Date().getHours())); }, 60000);
+
+  /* ---------------- a small terminal inside the CRT ---------------- */
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let termLog = [];
+  const termPrint = line => { termLog.push(line); const out = $('#termOut'); if (out) { out.insertAdjacentHTML('beforeend', `<div>${line}</div>`); tv.scrollTop = tv.scrollHeight; } };
+  const TERM = {
+    help: () => 'commands: ls, cat about.txt, open &lt;name&gt;, lamp, rain, sound, time, phase, whoami, clear, exit',
+    ls: () => 'about.txt  projects/  writing/  contact.txt\n' + TAPES.map(t => t.id + '.vhs').join('  '),
+    'cat about.txt': () => esc($('#ch-1').content.textContent.replace(/\s+/g, ' ').trim().replace(/^ABOUT /, '')),
+    'cat contact.txt': () => 'github.com/ziqi-zhou02',
+    whoami: () => 'a guest in ziqi\'s room',
+    time: () => new Date().toLocaleString(),
+    phase: () => { cyclePhase(); return 'sky → ' + document.body.dataset.phase; },
+    lamp: () => { setLamp(!state.lamp); return state.lamp ? 'lamp on' : 'lamp off'; },
+    rain: () => { rainOn = !rainOn; return rainOn ? 'rain on' : 'rain stopped'; },
+    sound: () => { setSound(!state.sound); return state.sound ? 'sound on' : 'sound off'; },
+    sudo: () => 'nice try',
+    clear: () => { termLog = []; const out = $('#termOut'); if (out) out.innerHTML = ''; return null; },
+    exit: () => { setChannel(0); return null; },
+  };
+  const runCmd = raw => {
+    const cmd = raw.trim().toLowerCase();
+    if (!cmd) return;
+    termPrint(`<span class="pr">guest@room:~$</span> ${esc(raw)}`);
+    if (cmd.startsWith('open ')) {
+      const t = TAPES.find(x => x.id === cmd.slice(5).replace('.vhs', '').trim());
+      if (t) { setTimeout(() => playTape(t.id), 250); termPrint('inserting tape…'); } else termPrint('no such tape. try ls');
+      return;
+    }
+    const f = TERM[cmd] || TERM[cmd.split(' ')[0]];
+    const out = f ? f() : `command not found: ${esc(cmd.split(' ')[0])}`;
+    if (out) out.split('\n').forEach(l => termPrint(l));
+  };
+  const openTerminal = () => {
+    state.ch = 5; markNav(-1);
+    show(`<div class="term"><div id="termOut"></div><form id="termForm" autocomplete="off"><span class="pr">guest@room:~$</span><input id="termIn" spellcheck="false" aria-label="terminal input"></form></div>`, 'CH 05');
+    $('#osdLeft').textContent = '▶ TERMINAL';
+    setTimeout(() => {
+      if (!termLog.length) termPrint('ROOM-OS 1.0 · type <b>help</b>');
+      else $('#termOut').innerHTML = termLog.map(l => `<div>${l}</div>`).join('');
+      $('#termForm').addEventListener('submit', e => { e.preventDefault(); const i = $('#termIn'); runCmd(i.value); i.value = ''; });
+      $('#termIn').focus({ preventScroll: true });
+    }, reduceMotion ? 0 : 200);
+    if (!state.zoom) setZoom(true);
   };
 
   /* ---------------- events ---------------- */
@@ -235,15 +332,21 @@
   document.addEventListener('keydown', e => {
     const t = e.target.closest && e.target.closest('.hot, .tape');
     if (t && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); t.classList.contains('tape') ? playTape(t.dataset.tape) : act(t.dataset.action); return; }
+    if (e.target.id === 'termIn') { if (e.key === 'Escape') { e.target.blur(); setZoom(false); } return; }
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key.toLowerCase();
     if (/^[0-4]$/.test(k)) setChannel(+k);
     else if (k === 'z') act('zoom');
     else if (k === 'l') act('lamp');
     else if (k === 'm') act('sound');
+    else if (k === 't') openTerminal();
+    else if (k === 'n') cyclePhase();
+    else if (k === 'r') { rainOn = !rainOn; }
     else if (k === 'escape' && state.zoom) setZoom(false);
   });
   $('#soundBtn').addEventListener('click', () => setSound(!state.sound));
+  $('#creditsBtn').addEventListener('click', e => { e.stopPropagation(); const c = $('#credits'); c.hidden = !c.hidden; });
+  document.addEventListener('click', e => { if (!e.target.closest('#credits, #creditsBtn')) $('#credits').hidden = true; });
   document.addEventListener('pointerover', e => {
     const h = e.target.closest('.hot, .tape');
     if (h) say(h.dataset.label, e.clientX, e.clientY, 0);
@@ -260,8 +363,10 @@
   rain.width = 960; rain.height = 540;
   const drops = Array.from({ length: 260 }, () => ({ x: Math.random() * 1000, y: Math.random() * 540, l: 10 + Math.random() * 18, v: 9 + Math.random() * 9 }));
   const beads = Array.from({ length: 70 }, () => ({ x: Math.random() * 960, y: Math.random() * 540, r: 1 + Math.random() * 2.4, v: 0 }));
+  let rainOn = true;
   const drawRain = () => {
     rctx.clearRect(0, 0, 960, 540);
+    if (!rainOn) { requestAnimationFrame(drawRain); return; }
     rctx.strokeStyle = 'rgba(200, 190, 255, .28)'; rctx.lineWidth = 1;
     rctx.beginPath();
     for (const d of drops) {
