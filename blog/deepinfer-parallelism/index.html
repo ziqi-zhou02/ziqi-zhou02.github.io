@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DeepInfer Parallelism Notes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A source-level walkthrough of how DeepSeek's DeepInfer lays out attention DP, MoE expert parallelism, balanced context parallelism and EPLB, and how that differs from vLLM.">
+<meta property="og:title" content="DeepInfer Parallelism Notes">
+<meta property="og:image" content="img/hero.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one 680px reading column centered on the page; a sticky contents rail in the left margin on wide screens. */
+:root {
+  --page: #ffffff;
+  --ink: #1b3242;          /* body text, slate-navy */
+  --muted: #5f7482;        /* captions, meta */
+  --line: #dde4e2;         /* rules, borders */
+  --band: #f2f5f2;         /* code + callout ground */
+  --accent: #b8553a;       /* clay, from the hero illustration; links + markers */
+  --figure: #ffffff;       /* figure ground (diagrams are drawn on white) */
+  --serif: 'Literata', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --measure: 680px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #12181c; --ink: #d5dfe4; --muted: #8fa1ab; --line: #2a353c;
+    --band: #1a2227; --accent: #e08a6c; --figure: #f4f4f1; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #12181c; --ink: #d5dfe4; --muted: #8fa1ab; --line: #2a353c;
+  --band: #1a2227; --accent: #e08a6c; --figure: #f4f4f1; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 400 17px/1.7 var(--serif);
+  -webkit-font-smoothing: antialiased;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, var(--measure)) minmax(0, 1fr);
+}
+article { grid-column: 2; grid-row: 1; min-width: 0; padding-block: 48px 96px; }
+
+/* contents rail */
+.toc { grid-column: 1; grid-row: 1; justify-self: end; width: 200px; margin-right: 64px; }
+.toc nav { position: sticky; top: 96px; margin-top: 300px; max-height: calc(100vh - 120px); overflow-y: auto; }
+.toc-title, .toc-inline summary {
+  font: 500 11px/1.4 var(--mono); letter-spacing: .09em; text-transform: uppercase; color: var(--muted);
+}
+.toc ul, .toc-inline ul { list-style: none; margin: 10px 0 0; padding: 0; }
+.toc a, .toc-inline a {
+  display: block; padding: 3px 0; color: var(--muted); text-decoration: none;
+  font: 400 13px/1.4 var(--serif);
+}
+.toc a.sub, .toc-inline a.sub { padding-left: 12px; font-size: 12.5px; }
+.toc a:hover, .toc a.active, .toc-inline a:hover { color: var(--ink); }
+.toc a.active { color: var(--accent); }
+.toc-inline { display: none; margin: 0 0 36px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px; }
+.toc-inline summary { cursor: pointer; }
+@media (max-width: 1180px) {
+  .toc { display: none; }
+  .toc-inline { display: block; }
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  article { grid-column: 1; max-width: var(--measure); margin-inline: auto; width: 100%; }
+}
+
+/* header */
+.kicker { font: 500 12px/1.4 var(--mono); letter-spacing: .09em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.15; font-weight: 700; letter-spacing: -.01em; margin: 0 0 14px; text-wrap: balance; }
+.meta { font: 400 13px/1.5 var(--mono); color: var(--muted); margin: 0 0 28px; }
+.hero { margin: 0 0 36px; }
+.hero img { display: block; width: 100%; height: auto; min-width: 0; border-radius: 10px; }
+
+h2 { font-size: 27px; line-height: 1.25; font-weight: 700; margin: 64px 0 14px; text-wrap: balance; scroll-margin-top: 24px; }
+h3 { font-size: 20px; line-height: 1.35; font-weight: 600; margin: 40px 0 10px; text-wrap: balance; scroll-margin-top: 24px; }
+p { margin: 0 0 18px; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+strong { font-weight: 600; }
+ul.body, ol.body { margin: 0 0 18px; padding-left: 22px; }
+ul.body li, ol.body li { margin-bottom: 6px; }
+code { font: 400 .84em/1 var(--mono); background: var(--band); padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--band); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 0 0 22px; }
+pre code { background: none; padding: 0; font-size: 13px; line-height: 1.6; overflow-wrap: normal; white-space: pre; }
+pre .c { color: var(--muted); }
+.src { display: block; font: 400 12px/1.4 var(--mono); color: var(--muted); margin: -14px 0 22px; overflow-wrap: anywhere; }
+
+figure { margin: 30px 0 34px; }
+figure .frame { background: var(--figure); border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow-x: auto; }
+figure img { display: block; width: 100%; height: auto; min-width: 520px; }
+figcaption { font-size: 14.5px; line-height: 1.55; color: var(--muted); margin-top: 10px; }
+figcaption b { color: var(--ink); font-weight: 600; }
+
+.note { border-left: 3px solid var(--accent); background: var(--band); padding: 12px 16px; margin: 0 0 22px; border-radius: 0 6px 6px 0; font-size: 15.5px; }
+.note p:last-child { margin: 0; }
+
+.table-wrap { overflow-x: auto; margin: 0 0 26px; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; line-height: 1.5; min-width: 560px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+th { font: 500 11.5px/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1.5px solid var(--ink); }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* CP widget */
+.widget { border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px 18px; margin: 0 0 30px; }
+.widget-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-bottom: 14px; }
+.widget-head label { font: 500 12px/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { font: 500 13px/1 var(--mono); background: none; color: var(--ink); border: 0; padding: 8px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--page); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.col h4 { margin: 0 0 8px; font: 600 15px/1.3 var(--serif); }
+.strip { display: flex; gap: 2px; margin-bottom: 10px; }
+.strip span { flex: 1; height: 22px; border-radius: 3px; font: 500 10px/22px var(--mono); text-align: center; color: #1b3242; }
+.bars { display: grid; gap: 5px; }
+.bar { display: grid; grid-template-columns: 34px 1fr 40px; align-items: center; gap: 8px; font: 400 12px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar i { display: block; height: 12px; border-radius: 3px; background: var(--accent); opacity: .85; }
+.ratio { font: 500 13px/1.4 var(--mono); margin-top: 10px; }
+.ratio b { color: var(--accent); font-weight: 500; }
+
+.cite { background: var(--band); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; font: 400 13px/1.6 var(--mono); overflow-x: auto; }
+ol.refs { padding-left: 26px; font-size: 15px; }
+ol.refs li { margin-bottom: 8px; }
+footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font: 400 13px/1.5 var(--mono); color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="toc" aria-label="Contents">
+  <nav>
+    <div class="toc-title">Contents</div>
+    <ul id="toc-list"></ul>
+  </nav>
+</aside>
+
+<article>
+  <p class="kicker">Inference systems · Reading notes</p>
+  <h1>Reading DeepInfer: Attention DP, Balanced CP and Expert Load Balancing</h1>
+  <p class="meta">October 21, 2026 · Ziqi Zhou · ~20 min read</p>
+
+  <figure class="hero"><img src="img/hero.png" alt="Hand-drawn balance scale holding two equal stacks of cubes, with dots falling toward the pans, on a clay background." width="1600" height="720"></figure>
+
+  <details class="toc-inline"><summary>Contents</summary><ul id="toc-inline-list"></ul></details>
+
+  <p>DeepSeek open-sourced <a href="https://github.com/deepseek-ai/DeepInfer">DeepInfer</a>, the inference framework behind the DeepSeek V4.1 Flash service. According to the accompanying deployment Q&amp;A, a single cluster serves 155 trillion tokens per day at roughly US$38 of revenue per GPU-hour at off-peak pricing [1]. The README says DeepInfer "was originally built primarily on vLLM", with ideas taken from SGLang and TensorRT-LLM. So it is a good case study in what a team does once it owns one model, one family of hardware and one very large deployment, and can stop being general.</p>
+
+  <p>This post covers the parallelism layer: how attention and MoE are split across GPUs, how DP ranks stay in lockstep, how context parallelism keeps causal attention balanced, and how expert load balancing (EPLB) works. I read the code at the initial public release and quote it directly. Where I compare with vLLM [6], I mean upstream vLLM as I know it. vLLM moves quickly, so check its current docs before relying on a specific claim. DSpark speculative decoding, the zero-overhead scheduler and batch-invariant inference are left for a second post.</p>
+
+  <h2 id="shape">The shape of the problem</h2>
+
+  <p>DeepSeek V4.1 Flash is a fine-grained MoE: hundreds of routed experts per layer, a few active per token, plus a shared expert. Decode is limited by memory bandwidth, and most bytes read per step are expert weights. The way to make each weight byte do more work is to spread experts over many GPUs, so that each GPU holds only a few experts and every expert sees a large batch of tokens gathered from the whole instance. That is <strong>wide expert parallelism</strong>.</p>
+
+  <p>The Q&amp;A gives the production layout [1]:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Stage</th><th>Parallelism</th><th>Rule of thumb</th></tr></thead>
+    <tbody>
+      <tr><td>Prefill</td><td class="num">EP 2–8 / DP 2–8</td><td>the smallest EP that fits in HBM; ordinary 8-GPU machines</td></tr>
+      <tr><td>Decode</td><td class="num">EP 64–128 / DP 64–128</td><td>the largest EP available; one 64–128-GPU supernode (one scale-up domain)</td></tr>
+      <tr><td>Vision encoder</td><td class="num">1 GPU</td><td>cheaper GPUs are fine</td></tr>
+      <tr><td>TP, CP</td><td>not used in production yet</td><td>CP is implemented and ships in the release</td></tr>
+    </tbody>
+  </table></div>
+
+  <p>Two things stand out compared with a typical vLLM deployment. There is <strong>no tensor parallelism</strong> anywhere: attention is replicated and the batch is split instead. And the EP group is sized to fit <strong>inside one NVLink domain</strong>, which is what makes the fused Mega MoE kernel possible (more on that below).</p>
+
+  <h2 id="dp-ep">Attention DP + MoE EP</h2>
+
+  <h3 id="layer">One decoder layer, 64 GPUs</h3>
+
+  <p>Every GPU holds a full copy of the attention weights and a disjoint set of requests together with their KV cache. Attention therefore needs no communication at all. Before the MoE block, each GPU routes its own tokens, sends them to the GPUs that host the chosen experts (dispatch), and receives the results back (combine). Because #DP = #EP, the same 64 ranks act as 64 attention replicas and as 64 expert shards.</p>
+
+  <figure>
+    <div class="frame"><img src="img/dp_ep.png" alt="Diagram: four GPU columns each with attention, own requests and KV cache, a router; a dispatch band across all GPUs; three experts plus one dashed redundant replica per GPU; a combine band; back to own tokens." width="1520" height="970" loading="lazy"></div>
+    <figcaption><b>Fig. 1.</b> Attention data parallelism with MoE expert parallelism in one layer. Attention never communicates; the only collectives are the two all-to-alls around the experts. Dashed boxes are redundant replicas placed by EPLB.</figcaption>
+  </figure>
+
+  <p>The process groups are built in <code>parallel_state.py</code> with einops over a flat rank range. The rank layout is <code>(dp cp)</code>, and the EP group is contiguous blocks of <code>ep_size</code> ranks, so in the common case EP spans the whole world. CP ranks of a sequence are therefore also distinct EP ranks. I come back to why that matters in the CP section.</p>
+
+  <pre><code>dp_ranks = rearrange(ranks, "(replica dp cp) -&gt; (replica cp) dp", dp=dp_size, cp=cp_size)
+cp_ranks = rearrange(ranks, "(dp cp) -&gt; dp cp", cp=cp_size)
+ep_ranks = rearrange(ranks, "(edp ep) -&gt; edp ep", ep=ep_size)   <span class="c"># EP == world when ep_size == world</span></code></pre>
+  <span class="src">deepinfer/model_executor/parallel_utils/parallel_state.py</span>
+
+  <h3 id="vote">Keeping DP ranks in lockstep</h3>
+
+  <p>The catch with attention DP is that the MoE all-to-all is a collective. Every rank must enter it in every layer of every step, whether or not it has work. So all 64 ranks have to agree, every step, on what kind of step they are running.</p>
+
+  <p>vLLM solves this by letting a rank with no requests run a dummy forward pass so the collectives still line up, and its scheduler mixes prefill chunks and decode tokens in the same batch. DeepInfer's production setup sidesteps most of it: prefill and decode run on separate engines (P/D disaggregation), so a decode engine only ever runs decode steps. For the <code>NORMAL</code> engine that does both, the C++ scheduler runs a small <strong>vote</strong> over the DP group to pick the step type.</p>
+
+  <figure>
+    <div class="frame"><img src="img/vote.png" alt="Grid of 13 steps by 4 DP ranks. Most steps are decode. At step 4 an ALL-point vote fails, at step 7 an ALL-point vote succeeds and all ranks prefill, at step 11 an ANY-point vote lets rank 1 prefill while the others run empty prompt steps." width="1500" height="720" loading="lazy"></div>
+    <figcaption><b>Fig. 2.</b> Step-type voting in the NORMAL engine (intervals are illustrative). At an ALL point, prefill happens only if every rank has prefill work. At a less frequent ANY point, one rank with work is enough, and the others run an empty prompt step (∅) so that the collectives still match.</figcaption>
+  </figure>
+
+  <pre><code><span class="c">// ALL point: everyone must want prefill. ANY point: one rank is enough.</span>
+bool want = (get_gpu_cache_usage() &lt;= GPU_CACHE_PREFILL_WATERMARK) &amp;&amp; _has_prefill_waiting();
+if (is_any_point) do_prefill = (_dp_allreduce(want ? 0 : 1, ReduceOp::MIN) == 0);
+else              do_prefill = (_dp_allreduce(want ? 1 : 0, ReduceOp::MIN) == 1);
+...
+<span class="c">// second vote: did anyone actually schedule something? (slots or KV blocks may be full)</span>
+bool any_scheduled = (_dp_allreduce(outputs ? 0 : 1, ReduceOp::MIN) == 0);
+if (!any_scheduled) return _schedule_decode(acquire);
+if (outputs) return outputs;
+return _make_outputs({}, true, 0, {}, {}, {}, 0);   <span class="c">// ride along with an empty prompt step</span></code></pre>
+  <span class="src">csrc/engine/scheduler.hpp, Scheduler::_schedule()</span>
+
+  <p>Three details are easy to miss:</p>
+  <ul class="body">
+    <li>The ALL points stop one rank with a short queue from dragging 63 others into near-empty prefill steps. The ANY points cap how long an isolated rank's prefill can wait.</li>
+    <li>The second vote prevents a livelock. A prompt step resets the decode counter. If every rank "wanted" prefill but none could schedule one (KV blocks full), forcing an empty prompt step would land on the next vote point again, forever.</li>
+    <li>With the zero-overhead scheduler enabled (<code>DEEPINFER_ZERO_OVERHEAD_SCHEDULING</code>), these all-reduces go over a <strong>gloo CPU group</strong> instead of NCCL, so the vote never forces a host–device sync in the middle of the overlapped CPU/GPU pipeline.</li>
+  </ul>
+
+  <h3 id="mega">Two MoE paths: DeepEP and Mega MoE</h3>
+
+  <p><code>DeepseekMoE</code> in <code>v4_modules/mlp.py</code> has two forward paths. The classic one calls DeepEP's [4] <code>EPBuffer.dispatch</code>, runs two grouped GEMMs from DeepGEMM [5] with a fused SwiGLU + per-token FP8 cast between them, and calls <code>combine</code>. The shared expert runs while combine is in flight, inside a <code>limit_num_sms(...)</code> block, so communication and compute split the SMs instead of fighting over them. The shared expert's output is passed as the <code>bias</code> argument of combine and is added for free.</p>
+
+  <p>The second path is used whenever the EP group fits in one NVLink domain: <code>deep_gemm.fp8_fp4_mega_moe</code> (or <code>bf16_mega_moe</code>) works on a symmetric-memory buffer and fuses gate output, dispatch, both expert GEMMs, combine and optionally the shared expert into one kernel. The Q&amp;A is direct about it: "regardless of EP size or batch size, Mega MoE is significantly faster than unfused MoE" [1]. Activations are FP8 and routed-expert weights are MXFP4.</p>
+
+  <figure>
+    <div class="frame"><img src="img/mega.png" alt="Timeline: classic EP layer with gate, dispatch, GEMM 1, SwiGLU, GEMM 2, combine as separate kernels on compute and comm lanes; below, Mega MoE as one fused kernel." width="1540" height="470" loading="lazy"></div>
+    <figcaption><b>Fig. 3.</b> Conceptual view of the two MoE paths. The fused kernel's internals live in DeepGEMM; DeepInfer only chooses the path (<code>use_mega_moe</code> is set when the EP group is within the physical NVLink domain).</figcaption>
+  </figure>
+
+  <p>This is the clearest difference from vLLM's design. vLLM keeps all-to-all as a pluggable backend (DeepEP high-throughput and low-latency modes, pplx-kernels and others) so that it can run on many cluster shapes. DeepInfer fixes the deployment shape first (decode EP fits in one scale-up domain) and then uses a kernel that only works under that assumption.</p>
+
+  <h2 id="cp">Balanced context parallelism</h2>
+
+  <p>For long prompts, DeepInfer can split one sequence's prefill across a CP group. The question is how to cut the sequence.</p>
+
+  <h3 id="cp-why">Why a naive split is unbalanced</h3>
+
+  <p>Under a causal mask, query chunk <var>i</var> attends to <var>i</var> key chunks plus half of its own. If rank <var>r</var> takes the <var>r</var>-th contiguous slice, the last rank does several times the attention work of the first, and the whole step waits for it. The standard fix (used in Megatron-style CP and in Ring/Zigzag attention [7]) is to cut the sequence into <code>2·CP</code> chunks and give rank <var>r</var> chunk <var>r</var> plus its mirror, chunk <code>2·CP−1−r</code>. A cheap row is paired with an expensive one, so every rank gets the same total.</p>
+
+  <figure>
+    <div class="frame"><img src="img/cp.png" alt="Two causal attention grids of 8 by 8 chunks with CP=4. Left, naive contiguous split gives rank work 2, 6, 10, 14, max over mean 1.75. Right, mirror split gives 8, 8, 8, 8, max over mean 1.00." width="1600" height="720" loading="lazy"></div>
+    <figcaption><b>Fig. 4.</b> CP = 4, sequence cut into 8 chunks. Each colored cell is one chunk-pair of attention work (diagonal cells count half). The mirror split equalizes work exactly.</figcaption>
+  </figure>
+
+  <p>Try other CP sizes:</p>
+
+  <div class="widget" id="cpw">
+    <div class="widget-head">
+      <label id="cp-label">CP size</label>
+      <div class="seg" role="group" aria-labelledby="cp-label">
+        <button type="button" id="cp-2" data-cp="2" aria-pressed="false">2</button>
+        <button type="button" id="cp-4" data-cp="4" aria-pressed="true">4</button>
+        <button type="button" id="cp-8" data-cp="8" aria-pressed="false">8</button>
+        <button type="button" id="cp-16" data-cp="16" aria-pressed="false">16</button>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="col"><h4>Naive split</h4><div class="strip" id="strip-naive"></div><div class="bars" id="bars-naive"></div><div class="ratio" id="ratio-naive"></div></div>
+      <div class="col"><h4>Mirror split</h4><div class="strip" id="strip-mirror"></div><div class="bars" id="bars-mirror"></div><div class="ratio" id="ratio-mirror"></div></div>
+    </div>
+  </div>
+
+  <p>With the naive split, max/mean is <code>(2·CP−1)/CP</code>, which approaches 2 as CP grows. Half of the group's attention time is wasted waiting.</p>
+
+  <h3 id="cp-kernel">The mirror index, computed on the GPU</h3>
+
+  <p>Batches are variable length, so every sequence in the batch is cut separately. <code>prepare_cp_mirror</code> is a TileLang kernel that, in one launch, computes for each rank a gather index from the packed varlen layout into the rank's mirror layout (<code>mirror_cp_index</code>, with −1 for padding), the inverse index, and the per-token key ranges <code>ks/ke</code> for every compression ratio used by the sparse/compressed attention. The core of the mapping is one line:</p>
+
+  <pre><code>ps   = ceil(seqlen_q / (2 * cp_size))          <span class="c"># chunk size for this sequence</span>
+half = off // ps                               <span class="c"># 0 = first chunk, 1 = mirrored chunk</span>
+blk  = cp_rank + half * (2*cp_size - 1 - 2*cp_rank)   <span class="c"># r  or  2·CP−1−r</span></code></pre>
+  <span class="src">deepinfer/model_executor/layers/tilelang_ops/cuda/prepare_cp_mirror.py</span>
+
+  <p>On the scheduler side, the comment in <code>scheduler.hpp</code> notes that <code>seqlen_q</code> is aligned to <code>cp_size * 2</code> ("*2 is mirror cp"), so the chunks divide evenly.</p>
+
+  <h3 id="cp-flow">What moves between CP ranks</h3>
+
+  <p>Queries stay local. Each rank computes Q only for its own two chunks and needs the full sequence's keys and values. DeepInfer all-gathers the KV side through a DeepEP <code>BucketBuffer</code> wrapped in a small <code>CPManager</code>. Two choices are specific to V4's attention:</p>
+  <ul class="body">
+    <li>V4 compresses the KV sequence (several compression ratios plus a sliding window). Compression must see tokens in their original order, so what is gathered is the <em>pre-compression</em> KV projection. Each rank then reorders it with the reverse index and runs the compressor on the full sequence. The metadata comment says it directly: "With CP, compression runs on the original full sequence, so no reordering is needed."</li>
+    <li>The all-gather is launched before the Q projection and waited on after it, so the communication hides behind the projection GEMMs. The gathered tensors alias the bucket buffer, which is reused by the next session, so nothing extra is allocated per layer.</li>
+  </ul>
+
+  <figure>
+    <div class="frame"><img src="img/cpflow.png" alt="Two CP ranks; each projects Q and pre-compression KV from local tokens; KV goes through a shared all-gather box, then reorder and compression, then attention of local Q against full KV, then MoE via EP." width="1540" height="620" loading="lazy"></div>
+    <figcaption><b>Fig. 5.</b> Data flow for one attention layer with CP = 2. Only KV crosses ranks; because V4's KV is heavily compressed, gathering it is far cheaper than moving activations.</figcaption>
+  </figure>
+
+  <p>From MoE's point of view nothing changes. Each CP rank routes the tokens it owns (there is even a CP-reordered copy of the gate's force-random mask, <code>gate_force_random_cp</code>), and since CP ranks are different EP ranks, a CP group looks like a few more DP ranks to the experts. CP adds no new collective to the MoE block.</p>
+
+  <div class="note"><p>The deployment Q&amp;A says CP is not used in production yet [1]: prefill machines run small EP/DP groups, and long-context traffic is handled by length-tiered load balancing plus a 3FS-backed KV cache that keeps prefixes for days. Balanced CP is in the release, but treat it as available rather than battle-tested.</p></div>
+
+  <h2 id="eplb">EPLB: expert-parallel load balancing</h2>
+
+  <p>Wide EP only pays off if no GPU's experts are much hotter than the rest; the all-to-all completes when the slowest rank finishes. DeepInfer, like DeepSeek's earlier open-source EPLB [3] and vLLM's port of it, gives each GPU a few <strong>redundant expert slots</strong> that host replicas of hot experts, and periodically re-solves which replicas exist and where they live.</p>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th></th><th>Redundant slots / GPU</th><th>Stats window</th><th>Re-plan every</th><th>Measured moe_lb</th></tr></thead>
+    <tbody>
+      <tr><td>Prefill</td><td class="num">≥ 4</td><td class="num">100 steps</td><td class="num">1,000 steps</td><td class="num">1.074 (EP4) / 1.045 (EP2)</td></tr>
+      <tr><td>Decode</td><td class="num">≥ 1</td><td class="num">1,000 steps</td><td class="num">10,000 steps</td><td class="num">1.090 (EP64)</td></tr>
+    </tbody>
+  </table></div>
+  <p>Here <code>moe_lb</code> is slowest-rank load over mean load [1]. The minimum number of extra slots is rounded up so that the total number of physical experts divides evenly by <code>ep_size</code> (<code>resolve_num_extra_experts</code>). At EP64 that works out to 7 routed experts per GPU.</p>
+
+  <h3 id="eplb-objective">The objective counts per-step peaks</h3>
+
+  <p>This is the part of DeepInfer's EPLB I found most interesting. The classic algorithm sums each expert's load over the window and balances those totals. DeepInfer keeps the per-step history and optimizes the quantity that actually sets latency, the sum over steps of the busiest GPU's load:</p>
+
+  <pre><code><span class="c"># the objective is independent per layer; for a fixed layer, place its physical experts on ranks
+# so that  sum_{step i} max_{rank j} (sum of loads at step i of experts placed on rank j)  is small</span></code></pre>
+  <span class="src">deepinfer/model_executor/eplb/policy.py, _batch_greedy_indices (comment translated from Chinese)</span>
+
+  <p>The difference shows up when experts fire together. In Fig. 6, experts A and B are busy in one step and C and D in the next, perhaps because the batch shifts from one kind of traffic to another. All four have the same average, so an averages-only planner sees layouts X and Y as equally good. Under the per-step objective, X costs twice as much as Y.</p>
+
+  <figure>
+    <div class="frame"><img src="img/eplb_toy.png" alt="Left: expert loads A=4,B=4 in step 1 and C=4,D=4 in step 2, average 2 each. Middle: layout X puts A,B on GPU0, C,D on GPU1, giving peaks 8 and 8, sum 16. Right: layout Y puts A,C and B,D together, peaks 4 and 4, sum 8." width="1540" height="640" loading="lazy"></div>
+    <figcaption><b>Fig. 6.</b> A toy case where averaged statistics cannot tell two placements apart, but the per-step peak objective can.</figcaption>
+  </figure>
+
+  <p>Both greedy stages in <code>rebalance_experts_global</code> use this objective:</p>
+  <ol class="body">
+    <li><strong>Replication.</strong> For each redundant slot, try giving one more replica to each logical expert, and keep the choice that minimizes the sum over steps of the maximum per-replica load. The code computes this for all candidates at once with a <code>scatter</code> trick: replacing only the argmax entry is enough, because adding a replica to any other expert leaves the max unchanged.</li>
+    <li><strong>Placement.</strong> Sort physical replicas by load, heaviest first. For each one, try every rank with free capacity, add the replica's per-step load vector to that rank's history, and keep the rank that minimizes <code>Σ_step max(peak, candidate)</code>. Ties go to the lowest rank ID.</li>
+  </ol>
+  <p>Both loops are written as batched tensor ops over <code>[layers, ranks, steps]</code>, so all MoE layers are solved in one pass on the GPU instead of one Python loop per layer.</p>
+
+  <h3 id="eplb-loop">The loop around it</h3>
+
+  <figure>
+    <div class="frame"><img src="img/eplb_loop.png" alt="Pipeline: MoE dispatch kernel counts tokens per local expert; ring window of W steps by layers by experts; every M steps all-reduce counts; replicate hot experts; pack replicas onto GPUs; shuffle weights over NVLink symmetric memory; arrow back to the gate kernel." width="1560" height="500" loading="lazy"></div>
+    <figcaption><b>Fig. 7.</b> The EPLB loop in <code>deepinfer/model_executor/eplb/</code>.</figcaption>
+  </figure>
+
+  <ul class="body">
+    <li><strong>Statistics are free.</strong> DeepEP's dispatch and the Mega MoE kernel both accept <code>cumulative_local_expert_recv_stats=expert_count</code> and bump the counters as tokens arrive. No extra kernel and no extra sync. Each step's counts are copied into a ring buffer of shape <code>[W, layers, local_experts]</code> and reset.</li>
+    <li><strong>Cold start is shortened.</strong> The first re-plan happens after a quarter of the interval rather than a full one, to correct the arbitrary initial layout early.</li>
+    <li><strong>The table goes straight into the gate.</strong> The fused gate kernel (<code>deep_gemm.bf16_mega_gate</code>) takes <code>logical_to_physical_map</code> and <code>logical_count</code> and emits physical expert IDs directly, so choosing among replicas costs nothing extra in the hot path.</li>
+    <li><strong>Weights move over symmetric memory.</strong> Inside an NVLink domain, each rank copies its current expert weights into a one-layer symmetric-memory mirror. After a barrier, every rank <em>pulls</em> the experts it needs directly from a peer's mirror. When several ranks hold a needed expert, <code>_paired_sender</code> spreads the receivers evenly across them. The mirror holds only one layer and is reused layer by layer, which keeps the extra memory small. Outside one domain it falls back to batched NCCL P2P with the same pairing.</li>
+    <li><strong>Prefill and decode differ.</strong> In a NORMAL engine, re-planning can be skipped on prefill steps or deferred until right after one (<code>DEEPINFER_REARRANGE_AFTER_PREFILL_IN_NORMAL_ENGINE</code>), so prefill's very different routing does not distort the decode layout.</li>
+  </ul>
+
+  <p>The fault-tolerance story connects here as well. In a wide-EP instance, one bad GPU takes down the whole communication domain, so on restart the instance takes whatever number of healthy GPUs it gets as its new EP size [1]. Since the extra-slot count is recomputed to divide <code>ep_size</code>, EPLB adapts to that size without manual tuning.</p>
+
+  <h2 id="vllm">Side by side with vLLM</h2>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>Concern</th><th>DeepInfer</th><th>vLLM (upstream, as I know it)</th></tr></thead>
+    <tbody>
+      <tr><td>Attention split</td><td>DP only, no TP; full attention weights on every GPU</td><td>TP or DP; DP attention + EP is an option for MoE models</td></tr>
+      <tr><td>Idle DP ranks</td><td>P/D disaggregated engines; NORMAL engine votes on step type and runs empty prompt steps</td><td>dummy forward passes; mixed prefill/decode batches</td></tr>
+      <tr><td>MoE communication</td><td>DeepEP v2 buffers; fused Mega MoE kernel when EP fits one NVLink domain</td><td>pluggable all-to-all backends (DeepEP HT/LL, pplx, …)</td></tr>
+      <tr><td>Context parallel</td><td>mirror-split prefill CP; gather pre-compression KV, overlapped with Q projection</td><td>context-parallel support has been evolving (e.g. decode CP for MLA); check current docs</td></tr>
+      <tr><td>EPLB statistics</td><td>counted inside the dispatch kernel; per-step history kept</td><td>per-step counts summed over a sliding window</td></tr>
+      <tr><td>EPLB objective</td><td>minimize Σ<sub>step</sub> max<sub>GPU</sub> load, for both replication and placement</td><td>DeepSeek EPLB algorithm on window-aggregated loads</td></tr>
+      <tr><td>Weight shuffle</td><td>pull from symmetric-memory mirror, one layer at a time; NCCL P2P fallback</td><td>NCCL P2P exchange</td></tr>
+    </tbody>
+  </table></div>
+
+  <p>The pattern across the table is the same. vLLM has to run well on any model, any parallel shape and any cluster, so its parts are general and pluggable. DeepInfer fixes those choices up front: one model family, P/D disaggregation, decode EP inside one scale-up domain. Each fixed choice then opens up a cheaper mechanism: no TP, a step vote instead of mixed batching, a fused MoE kernel, statistics that come for free, and symmetric-memory weight moves.</p>
+
+  <h2 id="next">What's next</h2>
+
+  <p>The parallelism layer is only half of what makes the decode numbers work. Part 2 will cover the other three features in the README: DSpark with confidence-scheduled variable-length verification (which cuts verified tokens per step from 5 to about 3.2–4.4 at almost the same accepted length), the zero-overhead batch scheduler that overlaps <code>schedule(N+1)</code> with <code>forward(N)</code>, and batch-invariant inference for deterministic outputs.</p>
+
+  <h2 id="citation">Citation</h2>
+  <p>Please cite this work as:</p>
+  <div class="cite">Zhou, Ziqi. "Reading DeepInfer: Attention DP, Balanced CP and Expert Load Balancing." Blog post, October 2026.</div>
+  <pre style="margin-top:14px"><code>@article{zhou2026deepinfer,
+  title   = "Reading DeepInfer: Attention DP, Balanced CP and Expert Load Balancing",
+  author  = "Zhou, Ziqi",
+  journal = "ziqi-zhou02.github.io",
+  year    = "2026",
+  month   = "Oct"
+}</code></pre>
+
+  <h2 id="refs">References</h2>
+  <ol class="refs">
+    <li>DeepSeek-AI. <a href="https://github.com/deepseek-ai/DeepInfer/blob/main/doc/inference_deployment_qa.md">"DeepSeek V4.1 Flash Inference Deployment Q&amp;A."</a> DeepInfer repository, 2026.</li>
+    <li>DeepSeek-AI. <a href="https://github.com/deepseek-ai/DeepInfer">"DeepInfer: High-performance, large-scale inference framework for DeepSeek models."</a> GitHub, 2026.</li>
+    <li>DeepSeek-AI. <a href="https://github.com/deepseek-ai/EPLB">"Expert Parallelism Load Balancer (EPLB)."</a> GitHub, 2025.</li>
+    <li>DeepSeek-AI. <a href="https://github.com/deepseek-ai/DeepEP">"DeepEP: an efficient expert-parallel communication library."</a> GitHub, 2025.</li>
+    <li>DeepSeek-AI. <a href="https://github.com/deepseek-ai/DeepGEMM">"DeepGEMM: clean and efficient FP8 GEMM kernels."</a> GitHub, 2025.</li>
+    <li>Kwon et al. <a href="https://arxiv.org/abs/2309.06180">"Efficient Memory Management for Large Language Model Serving with PagedAttention."</a> SOSP 2023.</li>
+    <li>Liu et al. <a href="https://arxiv.org/abs/2310.01889">"Ring Attention with Blockwise Transformers for Near-Infinite Context."</a> arXiv:2310.01889, 2023.</li>
+  </ol>
+
+  <footer>Figures drawn with rough.js in an Excalidraw-like style; the header illustration follows an Anthropic-style editorial palette.</footer>
+</article>
+</div>
+
+<script>
+(function () {
+  // contents (rail + inline) built from h2/h3
+  const heads = [...document.querySelectorAll('article h2[id], article h3[id]')];
+  const rail = document.getElementById('toc-list');
+  const inline = document.getElementById('toc-inline-list');
+  heads.forEach(h => {
+    for (const ul of [rail, inline]) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.textContent = h.textContent;
+      if (h.tagName === 'H3') a.className = 'sub';
+      li.appendChild(a);
+      ul.appendChild(li);
+    }
+  });
+  const links = [...rail.querySelectorAll('a')];
+  const onScroll = () => {
+    let cur = 0;
+    heads.forEach((h, i) => { if (h.getBoundingClientRect().top < 140) cur = i; });
+    links.forEach((a, i) => a.classList.toggle('active', i === cur));
+  };
+  document.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // CP balance widget
+  const colors = ['#a5d8ff', '#b2f2bb', '#ffec99', '#fcc2d7', '#d0bfff', '#ffd8a8', '#96f2d7', '#e9ecef'];
+  function owners(cp, mirror) {
+    const n = 2 * cp, o = [];
+    for (let i = 0; i < n; i++) o.push(mirror ? (i < cp ? i : n - 1 - i) : Math.floor(i / 2));
+    return o;
+  }
+  function render(cp) {
+    for (const mirror of [false, true]) {
+      const key = mirror ? 'mirror' : 'naive';
+      const o = owners(cp, mirror);
+      const work = new Array(cp).fill(0);
+      o.forEach((r, i) => (work[r] += i + 0.5));
+      const max = Math.max(...work), mean = work.reduce((a, b) => a + b) / cp;
+      const scale = (4 * cp - 2);  // naive max, shared scale for both columns
+      const strip = document.getElementById('strip-' + key);
+      strip.innerHTML = o.map(r => `<span style="background:${colors[r % colors.length]}">${cp <= 8 ? r : ''}</span>`).join('');
+      document.getElementById('bars-' + key).innerHTML = work.map((w, r) =>
+        `<div class="bar"><span>r${r}</span><i style="width:${(100 * w / scale).toFixed(1)}%"></i><span>${w}</span></div>`).join('');
+      document.getElementById('ratio-' + key).innerHTML = `max / mean = <b>${(max / mean).toFixed(2)}</b>`;
+    }
+    document.querySelectorAll('#cpw .seg button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.cp === cp)));
+  }
+  document.querySelectorAll('#cpw .seg button').forEach(b => b.addEventListener('click', () => render(+b.dataset.cp)));
+  render(4);
+})();
+</script>
+</body>
+</html>
