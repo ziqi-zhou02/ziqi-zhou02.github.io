@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Renting Compute, Selling Tokens, Selling Data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 18mm 17mm 20mm; }
+  :root { --ink: #1c1a24; --ink2: #5d5a6b; --line: #dcd8e6; --violet: #6d28d9; --tint: #f3f0fb; --c1: #7c3aed; --neutral: #b9b5c6; }
+  * { box-sizing: border-box; }
+  body { font: 10.4pt/1.55 "Newsreader", Georgia, serif; color: var(--ink); margin: 0; }
+  h1, h2, h3, h4, .sans, table, figcaption, .tag, .kpi, .toc { font-family: "Inter", system-ui, sans-serif; }
+  .cover { height: 250mm; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; }
+  .cover .eyebrow { font: 600 9pt Inter; letter-spacing: .14em; color: var(--violet); text-transform: uppercase; }
+  .cover h1 { font: 700 30pt/1.1 Inter; letter-spacing: -.02em; margin: 8mm 0 4mm; }
+  .cover .dek { font: 14pt/1.45 Newsreader; color: var(--ink2); max-width: 150mm; }
+  .cover .meta { font: 9.5pt Inter; color: var(--ink2); border-top: 1px solid var(--line); padding-top: 4mm; }
+  .cover .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; margin: 12mm 0; }
+  .kpi { border: 1px solid var(--line); border-radius: 3mm; padding: 4mm; }
+  .kpi b { display: block; font: 700 20pt Inter; color: var(--violet); letter-spacing: -.02em; }
+  .kpi span { font-size: 8.5pt; color: var(--ink2); }
+  h2 { font: 700 15pt/1.2 Inter; letter-spacing: -.01em; margin: 9mm 0 3mm; padding-top: 2mm; border-top: 2px solid var(--ink); }
+  h2 .n { color: var(--violet); margin-right: 2.5mm; }
+  h3 { font: 600 11pt Inter; margin: 6mm 0 2mm; }
+  .part { font: 700 9pt Inter; letter-spacing: .16em; text-transform: uppercase; color: var(--violet); margin: 0 0 2mm; page-break-before: always; }
+  .part.first { page-break-before: auto; }
+  p { margin: 0 0 2.6mm; }
+  ul { margin: 0 0 3mm; padding-left: 5mm; } li { margin-bottom: 1.2mm; }
+  strong { font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.3pt; margin: 2mm 0 4mm; page-break-inside: avoid; }
+  th { text-align: left; font-weight: 600; color: var(--ink2); border-bottom: 1.5px solid var(--ink); padding: 1.6mm 1.8mm; vertical-align: bottom; }
+  td { border-bottom: 1px solid var(--line); padding: 1.5mm 1.8mm; vertical-align: top; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tag { font-size: 7pt; font-weight: 600; color: var(--violet); background: var(--tint); border-radius: 1mm; padding: 0 1mm; white-space: nowrap; }
+  .box { background: var(--tint); border-left: 3px solid var(--violet); padding: 3mm 4mm; margin: 3mm 0 4mm; page-break-inside: avoid; }
+  .box h4 { font: 600 9pt Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--violet); margin: 0 0 1.5mm; }
+  .box p:last-child, .box ul:last-child { margin-bottom: 0; }
+  figure { margin: 3mm 0 5mm; page-break-inside: avoid; }
+  figcaption { font-size: 8pt; color: var(--ink2); margin-top: 2mm; }
+  figcaption b { color: var(--violet); }
+  svg text { font-family: Inter, sans-serif; }
+  .formula { font: 10pt "Inter"; text-align: center; background: #faf9fd; border: 1px solid var(--line); border-radius: 2mm; padding: 3mm; margin: 2mm 0 4mm; }
+  .heat td.num { font-weight: 600; }
+  .neg3 { background: #f3d4dc; } .neg2 { background: #f7e1e7; } .neg1 { background: #fbeef1; }
+  .pos1 { background: #e6f4f1; } .pos2 { background: #cfeae4; } .pos3 { background: #b4ddd4; }
+  .toc { font-size: 9.5pt; columns: 2; column-gap: 10mm; }
+  .toc div { margin-bottom: 1.5mm; break-inside: avoid; } .toc .n { color: var(--violet); font-weight: 600; margin-right: 2mm; }
+  .src { font-size: 7.8pt; line-height: 1.45; } .src li { margin-bottom: 1mm; word-break: break-word; }
+  .src a { color: var(--ink); text-decoration: none; }
+  a { color: var(--violet); }
+  .small { font-size: 8.5pt; color: var(--ink2); }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div>
+    <div class="eyebrow">Field notes · October 2026</div>
+    <h1>Renting Compute, Selling Tokens, Selling Data</h1>
+    <p class="dek">A sourced guide to how money moves through the AI supply chain, with a close reading of the only lab that has published its serving economics and a survey of the companies that sell data and RL environments to labs.</p>
+    <div class="kpis">
+      <div class="kpi"><b>$12.9 → $38</b><span>DeepSeek revenue per GPU-hour at list price, Mar 2025 vs Oct 2026</span></div>
+      <div class="kpi"><b>~80%</b><span>utilization a rented-H100 cluster needs at $2/hr to break even in my model</span></div>
+      <div class="kpi"><b>30–40%</b><span>net take rate of expert-data marketplaces after paying contractors</span></div>
+    </div>
+    <div class="toc">
+      <div><span class="n">1</span>Summary</div>
+      <div><span class="n">2</span>The value chain in one page</div>
+      <div><span class="n">3</span>The GPU rental market</div>
+      <div><span class="n">4</span>Neocloud business models, company by company</div>
+      <div><span class="n">5</span>Neocloud unit economics and the due-diligence debate</div>
+      <div><span class="n">6</span>How a lab turns GPU-hours into tokens</div>
+      <div><span class="n">7</span>DeepSeek, March 2025</div>
+      <div><span class="n">8</span>DeepSeek, October 2026</div>
+      <div><span class="n">9</span>Who else sells DeepSeek tokens, and at what price</div>
+      <div><span class="n">10</span>Why the data and environment market exists</div>
+      <div><span class="n">11</span>Human and expert data vendors</div>
+      <div><span class="n">12</span>RL environment vendors</div>
+      <div><span class="n">13</span>The business model behind selling data</div>
+      <div><span class="n">14</span>What to watch</div>
+      <div><span class="n">A</span>Methods and calculations</div>
+      <div><span class="n">B</span>Sources</div>
+    </div>
+  </div>
+  <div class="meta">Ziqi Zhou · companion to the essay "Following a Dollar Through the Tokenomy" at ziqi-zhou02.github.io · Figures current as of October 26, 2026. Source tags: <span class="tag">P</span> primary (filing, company page or repo), <span class="tag">S</span> reputable press, <span class="tag">2nd</span> secondary or estimate, <span class="tag">U</span> unverified. Calculations marked "my estimate" are mine and use stated assumptions.</div>
+</section>
+
+<p class="part first">Part one · Compute and tokens</p>
+
+<h2><span class="n">1</span>Summary</h2>
+<ul>
+  <li><strong>The industry sells two units.</strong> Clouds sell GPU-hours and labs sell tokens. Almost every business in between marks up one of the two, and the conversion rate between them, tokens per GPU-hour, decides most margins.</li>
+  <li><strong>Renting GPUs is a spread business with financing risk.</strong> List prices for an H100 run from about $2 (GMI Cloud, DeepInfra) to about $6 per GPU-hour (CoreWeave on demand). In my model a debt-financed cluster renting at $2 needs roughly 80% utilization to break even, and the result swings by 15–20 points depending on whether GPUs are depreciated over four or six years.</li>
+  <li><strong>The large neoclouds are now contract and credit businesses.</strong> CoreWeave reports $103.7B of remaining performance obligations, three customers at 72% of quarterly revenue and about $35B of debt. Its newest GPU-backed loan priced at SOFR+2.25% because an investment-grade customer anchored it, against 9–10% on its unsecured notes.</li>
+  <li><strong>DeepSeek is the only lab with published serving economics.</strong> In March 2025 it showed $87,072 a day of GPU cost against $562,027 of revenue at list price. In October 2026 its V4.1-Flash deployment report claimed $38 of revenue per GPU-hour at off-peak list prices, about three times the 2025 figure, even though output prices fell from $2.19 to $0.60 per million tokens.</li>
+  <li><strong>Selling data is a labor business with software ambitions.</strong> Expert-data marketplaces such as Mercor, Surge, Handshake and Micro1 book billions in gross revenue but keep only 30–40% after paying contractors. RL environment builders charge from a few hundred dollars per task to about $300k for a high-fidelity product clone, and five labs account for most of the demand.</li>
+</ul>
+
+<h2><span class="n">2</span>The value chain in one page</h2>
+<p>A paid token passes through the app, an optional router or cloud marketplace, the model lab, the cloud that rents the lab its accelerators, the chip vendor, and the foundry and memory makers. Money flows down that chain and the service flows up. Korea Investment &amp; Securities estimates how much value each layer keeps from one dollar of token revenue.</p>
+<table>
+  <tr><th>Layer</th><th class="num">Value added per $1</th><th>Reported margin at this layer</th><th>Source</th></tr>
+  <tr><td>Model company</td><td class="num">45–55¢</td><td>OpenAI adj. gross margin ~33% (2025), Anthropic ~40%</td><td>Shin 2026 <span class="tag">2nd</span>; The Information via BigGo <span class="tag">2nd</span></td></tr>
+  <tr><td>Cloud and data center</td><td class="num">10–16¢</td><td>CoreWeave adj. EBITDA 56%, adj. operating 1% (Q1 2026)</td><td>Daloopa <span class="tag">2nd</span>; CoreWeave 10-Q <span class="tag">P</span></td></tr>
+  <tr><td>GPU supplier</td><td class="num">~13¢</td><td>Nvidia GAAP gross margin 71.1% (FY26), 75.0% (Q4 FY26)</td><td>Nvidia 8-K <span class="tag">P</span></td></tr>
+  <tr><td>Other hardware and software</td><td class="num">~5¢</td><td>n/a</td><td>Shin 2026</td></tr>
+  <tr><td>Memory, power, foundry</td><td class="num">~5¢</td><td>Memory rising toward 25–30% of rack cost</td><td>iCapital 2026 <span class="tag">2nd</span></td></tr>
+  <tr><td>Construction, materials, residual</td><td class="num">~14¢</td><td>not allocated</td><td>Shin 2026</td></tr>
+</table>
+<p>The model company keeps the largest share of value but carries the heaviest fixed costs, so a large slice of gross value can still end in an operating loss. Upstream layers keep less per token dollar at higher margins, and they are paid first, when the hardware ships.</p>
+
+<h2><span class="n">3</span>The GPU rental market</h2>
+<p>Prices for a rented H100 fell from about $8 per hour at the late-2024 peak to $2.85–3.50 on demand by December 2025, with one-year commitments near $2 at the large clouds (Introl, 2025). Published on-demand list prices on October 26, 2026 still span a wide range, because they mix very different products, from a single bare-metal GPU to a managed InfiniBand cluster with storage and support.</p>
+<table>
+  <tr><th>Provider</th><th class="num">H100</th><th class="num">H200</th><th class="num">B200</th><th class="num">GB200 / GB300</th><th>Notes</th></tr>
+  <tr><td>CoreWeave <span class="tag">P</span></td><td class="num">$6.16</td><td class="num">$6.31</td><td class="num">$8.60</td><td class="num">$10.50 (GB200)</td><td>8-GPU node list prices divided by 8; most revenue is contracted below list</td></tr>
+  <tr><td>Nebius <span class="tag">P</span></td><td class="num">$4.50</td><td class="num">$5.40</td><td class="num">$8.50</td><td class="num">quote</td><td>self-service on demand; reserved capacity by contract</td></tr>
+  <tr><td>DeepInfra <span class="tag">P</span></td><td class="num">$2.90</td><td class="num">$3.49</td><td class="num">$4.89</td><td class="num">n/a</td><td>dedicated GPUs alongside a per-token API</td></tr>
+  <tr><td>GMI Cloud <span class="tag">2nd</span></td><td class="num">$2.00–2.10</td><td class="num">$2.50–3.50</td><td class="num">$4.00</td><td class="num">GB300 factory</td><td>prices from GMI's own blog posts and a Spheron comparison</td></tr>
+</table>
+<p class="small">All figures are dollars per GPU-hour. Pricing pages change often; these were read on October 26, 2026 unless marked.</p>
+
+<h2><span class="n">4</span>Neocloud business models, company by company</h2>
+<p>"Neocloud" covers several different businesses. Some rent bare metal by the hour, some build whole data centers for one anchor customer, and some mainly sell tokens. The table summarizes the main ones.</p>
+<table>
+  <tr><th style="width:15%">Company</th><th style="width:22%">What it sells</th><th style="width:33%">Scale</th><th style="width:30%">How it finances GPUs</th></tr>
+  <tr><td><strong>CoreWeave</strong></td><td>Bare-metal and managed clusters under multi-year take-or-pay contracts</td><td>2025 revenue $5.13B, net loss $1.17B. Q2 2026 revenue $2.58B. RPO $103.7B, 41% due within 24 months. Customers A/B/C at 36/26/10% of Q2 revenue <span class="tag">P</span></td><td>GPU-backed delayed-draw term loans (DDTL 1.0–5.0), OEM financing, 9.25–9.75% senior notes. DDTL 4.0 of $8.5B at SOFR+2.25%, rated A3 <span class="tag">P</span>. S&amp;P issuer rating B+ <span class="tag">S</span></td></tr>
+  <tr><td><strong>Nebius</strong></td><td>Full-stack AI cloud, self-service and reserved, plus an inference platform and Toloka (data)</td><td>Q2 2026 revenue $582M (+454% YoY), ARR $3B, adj. EBITDA margin 41%. 2026 guidance revenue $3–3.4B, capex $20–25B <span class="tag">P</span></td><td>Customer prepayments (expected above $9B in 2026), convertibles and equity. Anchor contracts with Microsoft ($17.4–19.4B) and Meta (~$3B) <span class="tag">S</span></td></tr>
+  <tr><td><strong>Lambda</strong></td><td>On-demand developer GPUs, moving to hyperscaler-anchored clusters</td><td>~$505M annualized (May 2025) <span class="tag">2nd</span>. Multibillion-dollar Microsoft GB300 deal (Nov 2025) <span class="tag">S</span></td><td>$1.5B Series E (Nov 2025) and a $1B senior secured facility <span class="tag">S</span>. No S-1 confirmed on EDGAR</td></tr>
+  <tr><td><strong>Crusoe</strong></td><td>Energy, data centers and cloud, including the Abilene campus for OpenAI and Oracle</td><td>2024 revenue $250M <span class="tag">S</span>. Projections of $500M (2025) and $2.2B (2026) <span class="tag">2nd</span></td><td>~$3B Series F at $30B post-money (Sep 2026) <span class="tag">S</span></td></tr>
+  <tr><td><strong>Nscale</strong></td><td>Hyperscaler-anchored capacity in the UK and Nordics</td><td>~200k GB300 GPUs contracted for Microsoft (Oct 2025) <span class="tag">S</span></td><td>$2B Series C at $14.6B (Mar 2026), a $1.4B DDTL, $790M Nordic bank debt <span class="tag">S</span></td></tr>
+  <tr><td><strong>Together AI</strong></td><td>GPU clusters plus serverless per-token inference (API ~30–40% of revenue)</td><td>~$1B run rate (Feb 2026), gross margin ~45% <span class="tag">2nd</span></td><td>$800M Series C at $8.3B post-money (Jul 2026) <span class="tag">2nd</span></td></tr>
+  <tr><td><strong>GMI Cloud</strong></td><td>GPU-as-a-service plus an inference engine selling tokens (~4T tokens a week). Nvidia reference-design partner</td><td>Contracted ARR above $600M, more than 9x end-2025. Taiwan "AI factory" of ~7,000 GB300 GPUs in 96 NVL72 racks (~16 MW, $500M). Customers include Fireworks, OpenRouter, Reflection, Nous <span class="tag">S</span></td><td>$82M Series A of equity plus debt (Oct 2024) <span class="tag">P</span>. $668M in Sep/Oct 2026, a $223M Series B with Nvidia and a $445M credit facility led by CTBC <span class="tag">S</span>. Fleet size not disclosed</td></tr>
+  <tr><td><strong>DeepInfra</strong></td><td>Per-token API on open models plus dedicated GPUs</td><td>Prices in Section 9 <span class="tag">P</span></td><td>$18M Series A (Apr 2025) <span class="tag">P</span>. Reported $107M Series B (May 2026) <span class="tag">U</span></td></tr>
+</table>
+<p>The pattern is that scale now comes from a few anchor contracts. A neocloud signs a multi-year take-or-pay contract with a creditworthy customer, then borrows against that contract to buy the GPUs. The better the customer's credit, the cheaper the debt. That is why CoreWeave's Meta-anchored facility priced roughly seven points below its unsecured notes.</p>
+
+<h2><span class="n">5</span>Neocloud unit economics and the due-diligence debate</h2>
+<p>I model one H100 with an all-in cost of $30k, 70% debt at 11%, 1.3 kW including cooling at $0.08/kWh, colocation at $150 per kW-month and $0.15 an hour for operations. The table shows the pre-tax margin per available GPU-hour as the rental price, utilization and depreciation life change. SemiAnalysis prices a reference H100 SuperPod server at about $318k, or $35–40k per GPU before storage, so my $30k is at the optimistic end.</p>
+<table class="heat">
+  <tr><th>Price per GPU-hour</th><th>Utilization</th><th class="num">4-year life</th><th class="num">5-year life</th><th class="num">6-year life</th></tr>
+  <tr><td>$1.50</td><td>60%</td><td class="num neg3">−82%</td><td class="num neg3">−63%</td><td class="num neg3">−50%</td></tr>
+  <tr><td>$1.50</td><td>80%</td><td class="num neg3">−37%</td><td class="num neg2">−22%</td><td class="num neg2">−13%</td></tr>
+  <tr><td>$1.50</td><td>95%</td><td class="num neg2">−15%</td><td class="num neg1">−3%</td><td class="num pos1">+5%</td></tr>
+  <tr><td>$2.00</td><td>60%</td><td class="num neg3">−37%</td><td class="num neg2">−22%</td><td class="num neg2">−13%</td></tr>
+  <tr><td>$2.00</td><td>80%</td><td class="num neg1">−2%</td><td class="num pos1">+8%</td><td class="num pos2">+15%</td></tr>
+  <tr><td>$2.00</td><td>95%</td><td class="num pos2">+14%</td><td class="num pos2">+23%</td><td class="num pos3">+29%</td></tr>
+  <tr><td>$2.50</td><td>60%</td><td class="num neg1">−9%</td><td class="num pos1">+2%</td><td class="num pos1">+10%</td></tr>
+  <tr><td>$2.50</td><td>80%</td><td class="num pos2">+18%</td><td class="num pos3">+27%</td><td class="num pos3">+32%</td></tr>
+  <tr><td>$2.50</td><td>95%</td><td class="num pos3">+31%</td><td class="num pos3">+38%</td><td class="num pos3">+43%</td></tr>
+</table>
+<p class="small">Pre-tax margin = (price × utilization − depreciation − interest − colocation − power − operations) ÷ revenue, per available GPU-hour. My estimate. Full formula in Appendix A.</p>
+<h3>What investors and analysts argue</h3>
+<ul>
+  <li><strong>Utilization is the business.</strong> Secondary estimates put raw H100 payback near 12 months at $3/hr and full utilization, stretching to about 29 months at 40% utilization before power, networking and financing. Debt-financed clusters need roughly 70–80% utilization to cover depreciation and interest, consistent with the table above. <span class="tag">2nd</span></li>
+  <li><strong>Depreciation life is the most contested assumption.</strong> CoreWeave depreciates over six years and defends it by pointing to A100 and H100 re-contracting. Michael Burry argued in November 2025 that hyperscalers' long lives understate depreciation by about $176B over 2026–28 and that the economic life is closer to two or three years. <span class="tag">S</span></li>
+  <li><strong>Moat and cost of capital.</strong> Kerrisdale Capital's September 2025 short report called CoreWeave a "debt-fueled GPU rental business with no moat" earning less than its cost of capital, with a $10 target. <span class="tag">S</span></li>
+  <li><strong>System-level demand.</strong> Sequoia's "AI's $600B Question" (2024) estimated the revenue the industry needs to justify GPU spending. Bain (2025) put the 2030 requirement at $2T a year with an $800B shortfall, and McKinsey projects $6.7T of data-center capex by 2030, $5.2T of it for AI. <span class="tag">P</span><span class="tag">S</span></li>
+  <li><strong>Credit stress this month.</strong> Reuters reported on October 15, 2026 that CoreWeave's shares and bonds slid on debt fears, and Fortune reported a 15% one-day drop after its 2031 bond yield touched 15%. <span class="tag">S</span></li>
+</ul>
+
+<h2><span class="n">6</span>How a lab turns GPU-hours into tokens</h2>
+<div class="formula">gross margin ≈ 1 − cost per GPU-hour ÷ (tokens per GPU-hour × price per token)</div>
+<p>Tokens per GPU-hour is an engineering result. It rises with batch size, prompt caching, expert parallelism, speculative decoding, quantization and newer hardware. Price per token is a segmentation choice, with premium frontier tiers and cheap fast tiers. Cost per GPU-hour is procurement, owned or rented, contracted or spot. The DeepSeek disclosures are valuable because they publish both the throughput and the price, which lets an outsider fill in the whole formula.</p>
+
+<h2><span class="n">7</span>DeepSeek, March 2025</h2>
+<p>DeepSeek published one day of production data for V3 and R1 on GitHub during its Open Source Week (DeepSeek, 2025a <span class="tag">P</span>). The window ran from noon February 27 to noon February 28, 2025, Beijing time.</p>
+<table>
+  <tr><th>Item</th><th class="num">Disclosed value</th><th>Note</th></tr>
+  <tr><td>Nodes (8× H800 each)</td><td class="num">226.75 average, 278 peak</td><td>nodes are moved to research and training at night</td></tr>
+  <tr><td>GPU cost assumption</td><td class="num">$2 per GPU-hour</td><td>rental rate, not DeepSeek's actual cost</td></tr>
+  <tr><td>Daily GPU cost</td><td class="num">$87,072</td><td>226.75 × 8 × $2 × 24</td></tr>
+  <tr><td>Input tokens</td><td class="num">608B</td><td>342B (56.3%) served from on-disk KV cache</td></tr>
+  <tr><td>Output tokens</td><td class="num">168B</td><td>20–22 tokens/s per user, average KV length 4,989</td></tr>
+  <tr><td>Throughput per node</td><td class="num">73.7k in / 14.8k out tok/s</td><td>prefill EP32 on 4 nodes, decode EP144 on 18 nodes</td></tr>
+  <tr><td>R1 list prices</td><td class="num">$0.14 / $0.55 / $2.19</td><td>per million tokens, cache hit / miss / output</td></tr>
+  <tr><td>Theoretical daily revenue</td><td class="num">$562,027</td><td>"cost profit margin" 545%, equal to an 85% gross margin</td></tr>
+</table>
+<h3>What the numbers imply (my estimates)</h3>
+<ul>
+  <li>At $16 per node-hour, prefill costs about <strong>$0.06 per million input tokens</strong> and decode about <strong>$0.30 per million output tokens</strong> at full load. The blended cost across all tokens is about $0.11 per million.</li>
+  <li>Theoretical revenue per GPU-hour is <strong>$12.9</strong> ($562,027 ÷ 43,536 GPU-hours).</li>
+  <li>Priced instead at V3's lower list prices ($0.07 / $0.27 / $1.10), the same day earns about $281k, a 222% margin over GPU rent. At V3.2's September 2025 prices ($0.028 / $0.28 / $0.42) it earns about $155k, still 78% above GPU rent, before counting the efficiency gains that justified the price cut.</li>
+</ul>
+<div class="box">
+  <h4>DeepSeek's own caveats</h4>
+  <p>V3 is priced well below R1, only part of the service is monetized because the website and app are free, and night-time discounts apply. DeepSeek said actual revenue is "substantially lower" than the theoretical figure. Reuters, Bloomberg, TechCrunch and SCMP all repeated these caveats, and a Bloomberg Opinion column was headlined "DeepSeek's 'Theoretical' Profit Margins Are Just That." <span class="tag">S</span></p>
+</div>
+<h3>Independent checks</h3>
+<ul>
+  <li><strong>LMSYS reproduced the design</strong> on 96 rented H100s with prefill-decode disaggregation and large-scale expert parallelism. It reached 52.3k input and 22.3k output tokens per second per node on 2K-token inputs, within about 6% of DeepSeek's profile, at roughly $0.20 per million output tokens (May 2025). <span class="tag">P</span></li>
+  <li><strong>SemiAnalysis</strong> argued in July 2025 that DeepSeek reaches its low cost with very large batches, at the price of slow first tokens and about 20 tokens per second, and that at equal latency DeepSeek's own API is not the cheapest DeepSeek provider. Its InferenceX tool estimates R1 at $0.22–0.47 per million tokens on owned H200s, rising steeply as per-user speed increases. <span class="tag">2nd</span> (paywalled, read through summaries)</li>
+</ul>
+
+<h2><span class="n">8</span>DeepSeek, October 2026</h2>
+<p>On October 20, 2026 DeepSeek open-sourced DeepInfer, the engine behind its production service, under Apache 2.0 (DeepSeek, 2026a <span class="tag">P</span>). The release supports V4.1-Flash on NVIDIA SM100 GPUs and Huawei Ascend 950 NPUs. It includes the kernels, model runtime, attention data parallelism, expert parallelism with load balancing and the scheduler. The KV cache system, prefill-decode disaggregation and cross-replica load balancing are not released. The README contains no prices or costs.</p>
+<p>The economics come from an accompanying deployment report on Zhihu (DeepSeek, 2026b), which I could not open directly. Chinese outlets quote it as follows. <span class="tag">2nd</span></p>
+<table>
+  <tr><th>Item</th><th class="num">Reported value</th></tr>
+  <tr><td>Throughput of one cluster</td><td class="num">~155 trillion tokens a day</td></tr>
+  <tr><td>Revenue per GPU-hour, at off-peak list prices</td><td class="num">$38</td></tr>
+  <tr><td>Input cache hit rate</td><td class="num">96%</td></tr>
+  <tr><td>Average input length</td><td class="num">77K tokens</td></tr>
+  <tr><td>Prefill per card</td><td class="num">60K tok/s excluding cache hits, 1.5M including</td></tr>
+  <tr><td>Decode per card / output speed</td><td class="num">14K tok/s / 230 tok/s (300 for code)</td></tr>
+  <tr><td>Time to first token</td><td class="num">400 ms average, 1,000 ms P99</td></tr>
+  <tr><td>Topology</td><td class="num">prefill on 8-card machines, decode on 64–128-card supernodes</td></tr>
+</table>
+<p>The current official prices for V4.1-Flash are $0.003 / $0.15 / $0.60 per million tokens off-peak and twice that at peak (DeepSeek API pricing <span class="tag">P</span>, read October 26, 2026). Peak hours are 01:00–04:00 and 06:00–10:00 UTC on weekdays.</p>
+<figure>
+  <svg viewBox="0 0 720 300" width="100%" role="img" aria-label="Revenue per GPU-hour versus GPU cost per hour">
+    <text x="0" y="16" font-size="12" font-weight="600" fill="#1c1a24">Revenue per GPU-hour at list price</text>
+    <text x="0" y="128" font-size="12" font-weight="600" fill="#1c1a24">What a GPU-hour costs</text>
+    <line x1="270" y1="26" x2="270" y2="282" stroke="#dcd8e6"/>
+    <g font-size="11" fill="#1c1a24">
+      <text x="0" y="44">Revenue, Mar 2025</text><text x="0" y="57" font-size="9.5" fill="#5d5a6b">V3/R1 on H800, R1 list prices</text>
+      <rect x="270" y="36" width="129" height="16" rx="3" fill="#7c3aed"/><text x="407" y="49" font-weight="600">$12.9</text>
+      <text x="0" y="84">Revenue, Oct 2026</text><text x="0" y="97" font-size="9.5" fill="#5d5a6b">V4.1-Flash, off-peak list prices</text>
+      <rect x="270" y="76" width="380" height="16" rx="3" fill="#7c3aed"/><text x="658" y="89" font-weight="600">$38</text>
+      <text x="0" y="154">B200, rented on demand</text><text x="0" y="167" font-size="9.5" fill="#5d5a6b">Nebius list</text>
+      <rect x="270" y="146" width="85" height="16" rx="3" fill="#b9b5c6"/><text x="363" y="159" font-weight="600">$8.50</text>
+      <text x="0" y="194">H200, rented on demand</text><text x="0" y="207" font-size="9.5" fill="#5d5a6b">Nebius list</text>
+      <rect x="270" y="186" width="54" height="16" rx="3" fill="#b9b5c6"/><text x="332" y="199" font-weight="600">$5.40</text>
+      <text x="0" y="234">H800, rented</text><text x="0" y="247" font-size="9.5" fill="#5d5a6b">DeepSeek's 2025 assumption</text>
+      <rect x="270" y="226" width="20" height="16" rx="3" fill="#b9b5c6"/><text x="298" y="239" font-weight="600">$2.00</text>
+      <text x="0" y="274">H200, owned</text><text x="0" y="287" font-size="9.5" fill="#5d5a6b">SemiAnalysis TCO estimate</text>
+      <rect x="270" y="266" width="12" height="16" rx="3" fill="#b9b5c6"/><text x="290" y="279" font-weight="600">$1.22</text>
+    </g>
+  </svg>
+  <figcaption><b>Figure 1.</b> Revenue is at list price, not realized revenue. The 2026 report names neither the chip nor the cluster size, so the cost bars show the plausible range.</figcaption>
+</figure>
+<h3>Evaluation (my estimates)</h3>
+<table>
+  <tr><th>If one GPU-hour costs…</th><th class="num">Margin over GPU cost at $38</th><th class="num">Revenue ÷ cost</th></tr>
+  <tr><td>$1.22, owned H200 (SemiAnalysis TCO)</td><td class="num">97%</td><td class="num">31x</td></tr>
+  <tr><td>~$2.50, owned Blackwell (assumption)</td><td class="num">93%</td><td class="num">15x</td></tr>
+  <tr><td>$5.40, rented H200 on demand (Nebius)</td><td class="num">86%</td><td class="num">7x</td></tr>
+  <tr><td>$8.50, rented B200 on demand (Nebius)</td><td class="num">78%</td><td class="num">4.5x</td></tr>
+</table>
+<ul>
+  <li><strong>Why revenue per GPU-hour rose while prices fell.</strong> Output prices fell about 3.7x ($2.19 to $0.60) and cache-miss input prices about 3.7x ($0.55 to $0.15), but revenue per GPU-hour rose about 3x. A 96% cache hit rate means most input tokens cost almost nothing to serve, very long inputs make each request worth more, and newer hardware and kernels raise throughput.</li>
+  <li><strong>How big might the cluster be.</strong> Pricing 155T tokens a day at off-peak list prices with 96% cache hits gives $1.8–3.2M a day if output is 0.5–2% of tokens. Dividing by $38 per GPU-hour implies roughly 2,000–3,500 accelerators. The output share is not disclosed, so treat this as an order of magnitude.</li>
+  <li><strong>The same cautions apply.</strong> The $38 is revenue at list price, the cost side excludes training, research and staff, and Chinese press commentary on 78–86% margins (21st Century Business Herald, Caijing) rests on the same assumptions as the table above.</li>
+</ul>
+
+<h2><span class="n">9</span>Who else sells DeepSeek tokens, and at what price</h2>
+<table>
+  <tr><th>Seller</th><th>Model</th><th class="num">Input $/M</th><th class="num">Output $/M</th><th>Source</th></tr>
+  <tr><td>DeepSeek API</td><td>V4.1-Flash, off-peak / peak</td><td class="num">$0.15 / $0.30</td><td class="num">$0.60 / $1.20</td><td>api-docs.deepseek.com <span class="tag">P</span></td></tr>
+  <tr><td>DeepSeek API</td><td>V4-Pro, off-peak / peak</td><td class="num">$0.66 / $1.32</td><td class="num">$1.98 / $3.96</td><td>api-docs.deepseek.com <span class="tag">P</span></td></tr>
+  <tr><td>DeepInfra</td><td>V3.2</td><td class="num">$0.26</td><td class="num">$0.38</td><td>deepinfra.com/pricing <span class="tag">P</span></td></tr>
+  <tr><td>DeepInfra</td><td>R1-0528</td><td class="num">$0.50</td><td class="num">$2.15</td><td>deepinfra.com/pricing <span class="tag">P</span></td></tr>
+  <tr><td>OpenRouter</td><td>V3.2 (cheapest providers)</td><td class="num">$0.25–0.27</td><td class="num">$0.38–0.40</td><td>OpenRouter <span class="tag">2nd</span></td></tr>
+  <tr><td>Fireworks</td><td>V3.2</td><td class="num">$0.56</td><td class="num">$1.68</td><td>LLM Reference <span class="tag">2nd</span></td></tr>
+  <tr><td>AWS Bedrock</td><td>V3.2</td><td class="num">$0.62</td><td class="num">$1.85</td><td>LLM Reference <span class="tag">2nd</span></td></tr>
+</table>
+<p>Third-party hosts of DeepSeek's open weights price close to DeepSeek's own API, and the premium hosts charge more for latency, reliability and enterprise terms. A host that rents H100s at $2–3 and runs smaller batches than DeepSeek has a much thinner spread, which is consistent with Together AI's reported ~45% gross margin and with OpenRouter acting mostly as a router rather than a producer.</p>
+
+<p class="part">Part two · Selling data and environments</p>
+
+<h2><span class="n">10</span>Why the data and environment market exists</h2>
+<p>As pretraining on public text saturated, the labs' bottleneck moved to post-training. That needs three kinds of input that cannot be scraped. The first is human preference data for RLHF. The second is expert-written reasoning traces in fields such as law, medicine, finance and software. The third, and fastest growing, is verifiable tasks and environments for reinforcement learning on agents, meaning a sandboxed copy of real software plus a task and an automatic grader. As models improve, the work moves from cheap crowd labeling to professionals paid $50–150 an hour.</p>
+
+<h2><span class="n">11</span>Human and expert data vendors</h2>
+<table>
+  <tr><th style="width:14%">Company</th><th style="width:30%">Scale and valuation</th><th style="width:30%">Model and customers</th><th style="width:26%">Notes</th></tr>
+  <tr><td><strong>Scale AI</strong></td><td>2024 revenue $870M. Meta bought 49% for ~$14.3B at ~$29B (Jun 2025) <span class="tag">S</span></td><td>Managed labeling and RLHF via its Outlier platform ($15–60/hr <span class="tag">U</span>). Pivot to government, $500M Pentagon contract (May 2026) <span class="tag">S</span></td><td>Google, OpenAI and others pulled back after the Meta deal. ~200 staff and 500 contractors cut (Jul 2025)</td></tr>
+  <tr><td><strong>Surge AI</strong></td><td>Revenue above $1B in 2024, bootstrapped and profitable. Sought up to $1B at $15–25B (Jul 2025) <span class="tag">S</span></td><td>DataAnnotation platform, $20–40/hr generalists, up to ~$150/hr coders <span class="tag">U</span>. OpenAI, Google, Anthropic, Meta</td><td>Building an internal RL environment team</td></tr>
+  <tr><td><strong>Mercor</strong></td><td>$450M run rate (Sep 2025), $10B valuation (Oct 2025) <span class="tag">S</span>. $2B gross run rate (Jun 2026), H1 2026 revenue $614M, talks at $20B (Jul 2026) <span class="tag">S</span></td><td>Hourly finder's fee plus markup on expert hours. 30,000+ experts averaging $85+/hr, $1.5M+ paid out a day (Oct 2025) <span class="tag">S</span></td><td>Data breach (Mar 2026), Meta paused work, contractor class actions <span class="tag">S</span></td></tr>
+  <tr><td><strong>Handshake AI</strong></td><td>Gross run rate ~$550M (Jan 2026) to nearly $1B (Apr 2026), net ~$300M <span class="tag">U</span></td><td>Students, PhDs and experts at $40–125/hr. ~$60M a month paid to 30,000+ people</td><td>Pivot from a campus jobs platform</td></tr>
+  <tr><td><strong>Micro1</strong></td><td>ARR from $7M (Jan 2025) to $400–500M gross (2026), valuation ~$4B <span class="tag">U</span></td><td>Expert marketplace, keeps ~30–40% of gross</td><td>One of the fastest-growing vendors</td></tr>
+  <tr><td><strong>Turing</strong></td><td>$111M Series E at $2.2B (Mar 2025), ARR ~$300M <span class="tag">S</span></td><td>Coding and reasoning data for OpenAI and others</td><td></td></tr>
+  <tr><td><strong>Invisible</strong></td><td>$100M at above $2B (Sep 2025), 2024 revenue $134M <span class="tag">S</span></td><td>Managed AI training plus RL environments</td><td></td></tr>
+  <tr><td><strong>Snorkel AI</strong></td><td>$100M Series D at $1.3B (May 2025) <span class="tag">P</span></td><td>"Expert data-as-a-service" and evaluation tooling</td><td>Closer to platform software</td></tr>
+  <tr><td><strong>Prolific, Toloka, Labelbox</strong></td><td>Prolific ~$350M annualized <span class="tag">U</span>. Toloka $72M led by Bezos Expeditions <span class="tag">S</span>. Labelbox ~$50M <span class="tag">U</span></td><td>Research panels, crowd and expert annotation</td><td>Prolific benefited from labs seeking "neutral" vendors</td></tr>
+  <tr><td><strong>Appen</strong></td><td>FY25 guidance A$235–260M <span class="tag">S</span></td><td>Legacy crowd labeling</td><td>Lost Google in 2024, $82.8M of revenue at 26% gross margin</td></tr>
+</table>
+
+<div class="box">
+  <h4>How big data vendors are next to everyone else</h4>
+  <p>SOTA2's "Top 100 AI companies by revenue" (updated October 25, 2026 <span class="tag">2nd</span>) ranks AI-native companies, with big tech excluded, by their latest run rate or revenue. Four training-data vendors place in the top 18: Mercor (#7, $2B gross run rate, June 2026), Surge AI (#10, $1.2B, 2024), Handshake (#11, $1.15B, April 2026) and Scale AI (#13, $1B, 2025). Once the five model labs are removed, that is four of the thirteen largest companies, next to GPU clouds such as CoreWeave, Crusoe, Lambda and Together. Snorkel (#44) and Invisible (#97) also make the list. No RL-environment pure play does yet. Caveat: the data vendors report gross revenue before contractor payouts, so their net revenue is roughly a third of the bar. Mercor's first-half 2026 revenue was reported at $614M, 91% of it from foundation-model companies <span class="tag">S</span>.</p>
+  <p>I could not find an a16z revenue ranking. a16z's own writing on this market is investment theses: it says labs have spent "hundreds of millions" on computer-use RL environments over the past year, and it argues that environments turn data "from a labor problem into an engineering and research problem, and increasingly, a compute problem" <span class="tag">P</span>.</p>
+</div>
+<h2><span class="n">12</span>RL environment vendors</h2>
+<p>An RL environment is a sandboxed replica of software, such as a browser, a Slack or Salesforce clone, a git repository with failing tests, or a spreadsheet or Bloomberg-terminal clone, together with tasks and an automatic grader that issues the reward. One environment can host hundreds of tasks, and labs use them for RL, evaluation and fine-tuning on successful attempts.</p>
+<table>
+  <tr><th>What is sold</th><th class="num">Reported price</th><th>Source</th></tr>
+  <tr><td>Individual task</td><td class="num">$200–2,000, ~$20k for complex software engineering</td><td>Epoch AI, Jan 2026 (18 interviews) <span class="tag">2nd</span></td></tr>
+  <tr><td>Website replica ("UI gym")</td><td class="num">~$20k</td><td>SemiAnalysis via Epoch <span class="tag">2nd</span></td></tr>
+  <tr><td>High-fidelity product clone (e.g. Slack)</td><td class="num">~$300k</td><td>Epoch AI <span class="tag">2nd</span></td></tr>
+  <tr><td>Contract size</td><td class="num">six to seven figures a quarter, $300–500k cited</td><td>Epoch AI <span class="tag">2nd</span></td></tr>
+  <tr><td>Exclusivity premium</td><td class="num">4–5x non-exclusive price</td><td>Epoch AI <span class="tag">2nd</span></td></tr>
+  <tr><td>Compute spent per task in RL training</td><td class="num">~$2,400</td><td>Mechanize <span class="tag">P</span></td></tr>
+</table>
+<p>Anthropic leaders reportedly discussed spending more than $1B on RL environments over a year (The Information via TechCrunch, Sep 2025 <span class="tag">U</span>). Vendors include Mechanize (coding environments, founded 2025 by former Epoch staff), Prime Intellect (an open Environments Hub, reported $130M Series A <span class="tag">U</span>), Halluminate (finance environments, $30M Series A in Oct 2026, says four of the top five US labs pay it), Deeptune ($43M Series A led by a16z, reportedly being acquired by Mercor <span class="tag">U</span>), Bespoke Labs ($40M total), Veris AI ($8.5M seed) and Idler ($9M seed). The large data vendors, including Mercor, Surge, Handshake, Turing, Scale and Invisible, now sell environments too.</p>
+<div class="box">
+  <h4>Risks specific to environments</h4>
+  <ul>
+    <li><strong>Reward hacking.</strong> Models have found answers on the web or checked out future git commits, so graders must be adversarially robust.</li>
+    <li><strong>Labs building in-house.</strong> Anthropic and xAI are hiring environment teams, and a16z partners say all large labs build environments internally.</li>
+    <li><strong>Skeptics.</strong> OpenAI's Sherwin Wu said he is "short" RL environment startups.</li>
+  </ul>
+</div>
+
+<h2><span class="n">13</span>The business model behind selling data</h2>
+<ul>
+  <li><strong>Gross versus net.</strong> Most expert marketplaces book revenue gross and pass 60–70% to contractors, so a "$1B run rate" is often $300–400M of net revenue. That makes them closer to staffing firms than to software companies. Legacy crowd labelers ran 21–26% gross margins.</li>
+  <li><strong>Customer concentration.</strong> About five labs account for most demand. Losing one is existential, as Appen found with Google, Scale with Google and OpenAI after the Meta deal, and Mercor with Meta after its breach.</li>
+  <li><strong>Neutrality is a product.</strong> Labs will not send their post-training priorities to a vendor a rival owns, which is why neutral vendors gained after Meta's Scale investment.</li>
+  <li><strong>Defensibility is weak but real.</strong> The assets are recruited expert networks and how fast they can be deployed, quality-control tooling, security and domain depth. Switching costs are low, and the biggest customers can build in-house.</li>
+  <li><strong>Where it sits in a lab's costs.</strong> Data and environments are a second post-training cost line next to compute, and they are paid for twice, once to build each task and again in rollout compute. Mechanize's ~$2,400 of compute per task suggests compute still dwarfs data spending. My rough sum of the largest vendors' gross run rates is $6–8B in 2026, small next to lab compute budgets. <span class="tag">U</span></li>
+  <li><strong>Environments are the software-like exception.</strong> Reusable environments licensed to several labs could earn software margins, but the 4–5x exclusivity premium shows that labs often pay to keep them private, which cuts against reuse.</li>
+</ul>
+<p>Generic "AI training dataset" market reports, such as Grand View Research's $8.6B by 2030, are far smaller than the vendors' own reported revenue, so they do not measure the frontier-lab segment and I do not rely on them.</p>
+
+<h2><span class="n">14</span>What to watch</h2>
+<ul>
+  <li><strong>Realized versus list revenue at DeepSeek and others.</strong> The gap between $38 per GPU-hour at list price and actual revenue is the most important unknown in token economics.</li>
+  <li><strong>GPU useful life and residual value.</strong> Re-contracting rates for H100s in 2027–29 will settle the four-versus-six-year debate.</li>
+  <li><strong>The refinancing wall.</strong> GPU-backed loans across CoreWeave, Nebius, Lambda and Crusoe come due in 2026–28, and October 2026 bond prices are an early signal.</li>
+  <li><strong>Cache-heavy workloads.</strong> Agentic and coding workloads with long, repeated context reward whoever owns the cache. Watch whether third-party hosts close the gap.</li>
+  <li><strong>Data vendor concentration.</strong> Whether labs keep buying from outside vendors or bring environment building in-house will decide if this is a durable industry or a transitional one.</li>
+</ul>
+
+<p class="part">Appendices</p>
+<h2><span class="n">A</span>Methods and calculations</h2>
+<ul>
+  <li><strong>DeepSeek 2025 unit costs.</strong> Node-hour cost = 8 × $2 = $16. Cost per million tokens = $16 ÷ (tokens per second × 3,600 ÷ 10<super>6</super>). Prefill at 73.7k tok/s gives $0.060, decode at 14.8k tok/s gives $0.300.</li>
+  <li><strong>Revenue under other price lists.</strong> Revenue = 342B × hit price + 266B × miss price + 168B × output price, using DeepSeek's disclosed token mix.</li>
+  <li><strong>Margin at $38 per GPU-hour.</strong> Margin = 1 − cost ÷ $38 for each cost assumption.</li>
+  <li><strong>Implied cluster size.</strong> Daily list revenue = 155T × (1 − s) × (0.96 × $0.003 + 0.04 × $0.15) + 155T × s × $0.60, per million tokens, for output share s of 0.5–2%. GPUs = daily revenue ÷ ($38 × 24).</li>
+  <li><strong>Neocloud margin grid.</strong> Per available GPU-hour, revenue = price × utilization. Depreciation = $30,000 ÷ (life × 8,760). Interest = $30,000 × 70% × 11% ÷ 8,760 = $0.26. Colocation $0.27, power $0.10, operations $0.15.</li>
+</ul>
+
+<h2><span class="n">B</span>Sources</h2>
+<ol class="src">
+  <li><span class="tag">P</span> DeepSeek, "DeepSeek-V3/R1 Inference System Overview," GitHub open-infra-index, Mar 1, 2025. https://github.com/deepseek-ai/open-infra-index/blob/main/202502OpenSourceWeek/day_6_one_more_thing_deepseekV3R1_inference_system_overview.md</li>
+  <li><span class="tag">P</span> DeepSeek, DeepInfer repository, Oct 2026. https://github.com/deepseek-ai/DeepInfer</li>
+  <li><span class="tag">P</span> DeepSeek API, Models &amp; Pricing, read Oct 26, 2026. https://api-docs.deepseek.com/quick_start/pricing/</li>
+  <li><span class="tag">P</span> DeepSeek API news: V3.1 (Aug 21, 2025), V3.2-Exp (Sep 29, 2025), V4 Preview (Apr 24, 2026), V4-Pro GA (Aug 13, 2026), V4.1-Flash (Sep 10, 2026), V4.1-Flash-1017 (Oct 17, 2026). https://api-docs.deepseek.com/news/</li>
+  <li><span class="tag">2nd</span> DeepSeek, "DeepSeek V4.1 Flash 大规模推理部署实践," Zhihu, Oct 20, 2026, as quoted by 21st Century Business Herald (Oct 21, 2026), Sina and Eogee. https://zhuanlan.zhihu.com/p/2095560295930508953 ; https://m.21jingji.com/article/20261021/herald/8225dc17d550b728eed25f5ea9b5d031.html</li>
+  <li><span class="tag">S</span> Bloomberg, "DeepSeek Reveals Theoretical Margin on Its AI Models Is 545%," Mar 1, 2025. TechCrunch, "DeepSeek claims 'theoretical' profit margins of 545%," Mar 1, 2025. Reuters via AOL, Mar 1, 2025. SCMP, Mar 2025. Bloomberg Opinion via Advisor Perspectives, Mar 4, 2025.</li>
+  <li><span class="tag">P</span> LMSYS, "Deploying DeepSeek with PD Disaggregation and Large-scale Expert Parallelism on 96 H100 GPUs," May 5, 2025. https://lmsys.org/blog/2025-05-05-large-scale-ep/</li>
+  <li><span class="tag">2nd</span> SemiAnalysis, "DeepSeek Debrief: &gt;128 Days Later," Jul 3, 2025 (paywalled, read via QbitAI summary). SemiAnalysis InferenceX, read Oct 26, 2026.</li>
+  <li><span class="tag">P</span> CoreWeave S-1 (Mar 2025), 10-K FY2025 (Feb 2026), 10-Q Q2 2026 (Aug 2026), SEC EDGAR. Results release Feb 26, 2026. "$8.5B investment-grade GPU-backed financing" release, Mar 30, 2026. Pricing page, read Oct 26, 2026.</li>
+  <li><span class="tag">P</span> Nebius Q2 2026 6-K exhibit, SEC. Pricing page, read Oct 26, 2026.</li>
+  <li><span class="tag">S</span> GMI Cloud: The Next Web, "Nvidia-backed GMI Cloud raises $668m," Oct 1, 2026. Reuters via Yahoo, "GMI Cloud to build $500M AI data centre in Taiwan," Nov 2025. DCD on the Taiwan site. GMI Cloud blog posts on its Series A and Taiwan AI factory <span class="tag">P</span>. Spheron, "GMI Cloud pricing 2026" <span class="tag">2nd</span>.</li>
+  <li><span class="tag">S</span> TechCrunch, "Lambda raises $1.5B after Microsoft deal," Nov 18, 2025. Bloomberg, Crusoe $30B round, Sep 2026. TheEnergyMag on Nscale Narvik financing, May 2026. Sacra profiles of Lambda and Together AI <span class="tag">2nd</span>.</li>
+  <li><span class="tag">P</span> DeepInfra pricing page, read Oct 26, 2026. Fenwick on DeepInfra's Series A, Apr 2025.</li>
+  <li><span class="tag">P</span> SemiAnalysis, "AI Neocloud Playbook and Anatomy," Oct 3, 2024. Sequoia, "AI's $600B Question," Jun 20, 2024. McKinsey, "The cost of compute," Apr 2025. a16z, "Welcome to LLMflation," Nov 2024.</li>
+  <li><span class="tag">S</span> Kerrisdale Capital CoreWeave short via TipRanks/TheFly, Sep 15, 2025. Bloomberg on Bain's $800B shortfall, Sep 23, 2025. Sherwood on Michael Burry and depreciation, Nov 2025. Reuters via CTV, "CoreWeave shares, bonds slide further as AI debt fears mount," Oct 15, 2026. Fortune, "CoreWeave investor explains…," Oct 16, 2026. S&amp;P B+ rating, May 2025.</li>
+  <li><span class="tag">2nd</span> Korea Investment &amp; Securities (Shin), "AI Token Value Today and Tomorrow," Jul 9, 2026. iCapital, "Tokenomics," Jul 31, 2026. Daloopa, Nebius vs. CoreWeave, 2026. Introl, GPU price collapse, Dec 2025.</li>
+  <li><span class="tag">2nd</span> Epoch AI, "An FAQ on reinforcement learning environments," Jan 12, 2026. TechCrunch, "Silicon Valley bets big on 'environments' to train AI agents," Sep 16, 2025. Mechanize, "Cheap RL tasks will waste compute" <span class="tag">P</span>.</li>
+  <li><span class="tag">S</span> Scale AI: CNBC/NBC on OpenAI winding down work, Jun 2025. Heise on Google, Jun 2025. TechRepublic on layoffs, Jul 2025. Bloomberg Gov on the $500M Defense contract, May 2026. Sacra profiles <span class="tag">2nd</span>.</li>
+  <li><span class="tag">S</span> Surge AI: Reuters via TradingView and Bloomberg, Jul 2025. Mercor: TechCrunch, Sep 9 and Oct 27, 2025, and Apr 9, 2026. Handshake: Dealroom, Apr 14, 2026 <span class="tag">2nd</span>. Turing: TechCrunch, Mar 6, 2025. Invisible: Bloomberg Tax, Sep 2025. Snorkel press release, May 2025 <span class="tag">P</span>. Toloka: TipRanks/Reuters, May 2025. Prolific: Sacra <span class="tag">2nd</span>. Appen: Staffing Industry Analysts and Capital Brief, 2025.</li>
+  <li><span class="tag">S</span> RL environment funding: Fortune on Deeptune, Mar 19, 2026. Dealroom on Halluminate, Oct 1, 2026, and Idler, Aug 2026. The Next Web on Bespoke Labs, Jul 6, 2026. Pulse 2.0 on Veris AI, Jun 2025. LetsDataScience on Prime Intellect, Jul 2026 <span class="tag">2nd</span>. AI Weekly citing Business Insider on Google and Mechanize, Aug 2026 <span class="tag">U</span>.</li>
+  <li><span class="tag">2nd</span> SOTA2, "Top 100 AI companies by revenue," updated Oct 25, 2026. https://www.sota2.com/top/ai-global . Dealroom, "Mercor doubles to $2B gross revenue run rate," 2026. Sacra Mercor profile. Forbes, "Mercor in talks to raise $500 million at $20 billion valuation," Jul 9, 2026 <span class="tag">S</span>.</li>
+  <li><span class="tag">P</span> a16z, "Investing in Deeptune"; "Can Agents Use a Computer Yet? We've Got the Data"; "Big Ideas 2026: Part 2." a16z.com.</li>
+</ol>
+<p class="small">Not found or not verified: the full text of DeepSeek's Zhihu report, Morgan Stanley, UBS or Jefferies neocloud notes, a Lambda S-1 on EDGAR, GMI Cloud's total fleet size, audited 2025 revenue for Scale AI, and any primary source for a lab's total spending on human data.</p>
+</body>
+</html>
