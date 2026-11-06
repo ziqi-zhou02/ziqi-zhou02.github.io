@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,35 +12,67 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/post.css">
   <script>
-    try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+    try { const t = localStorage.getItem('min-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
 </head>
 <body>
-  <div class="aurora" aria-hidden="true"></div>
-  <div class="progress" aria-hidden="true"></div>
-  <div class="cursor-dot" aria-hidden="true"></div>
-  <div class="cursor-ring" aria-hidden="true"></div>
-  <canvas id="fx" aria-hidden="true"></canvas>
+  <canvas id="sky" aria-hidden="true"></canvas>
 
-  <header class="nav">
-    <a href="../" class="logo" data-scramble>~/<span class="accent">ziqi</span></a>
-    <nav>
-      <a href="../#projects" data-scramble><span class="num">02.</span>projects</a>
-      <a href="../#writing" data-scramble><span class="num">03.</span>writing</a>
-      <button class="icon-btn" id="theme-toggle" title="Toggle theme">◐</button>
+  <header class="ptop">
+    <a class="logo" href="../#about">~/<b>ziqi</b><span class="caret"></span></a>
+    <nav class="ptabs" aria-label="Sections">
+      <a href="../#about"><span class="k">01</span>about</a>
+      <a href="../#blog" class="on"><span class="k">02</span>blog</a>
     </nav>
+    <div class="pside">
+      <a class="ibtn" href="https://github.com/ziqi-zhou02" target="_blank" rel="noopener" aria-label="GitHub"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.2-3.1-.1-.4-.5-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.6 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.2.8.8 1.2 1.9 1.2 3.1 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg></a>
+      <button class="ibtn" id="theme" aria-label="Toggle light and dark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20V2z"/><path d="M12 2a10 10 0 0 1 0 20" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+    </div>
   </header>
 
-  <article class="article">
-    <a class="back" href="../#writing">← all writing</a>
+  <div class="chap" id="chap" aria-hidden="true">
+    <span><b>Chapter <i id="chap-n">01</i>:</b> <span id="chap-t"></span></span>
+    <a href="#top" onclick="scrollTo({top:0,behavior:'smooth'});return false;">top ↑</a>
+    <span class="bar"></span>
+  </div>
 
-    <div class="article-meta">
-      <span>Oct 17, 2026</span><span>·</span><span>~18 min read</span><span>·</span><span>Ziqi Zhou</span><span>·</span><span class="tag">#ai-economics #neocloud</span>
-    </div>
+  <section class="phead" id="top">
+    <p class="kicker">blog · oct 17, 2026</p>
     <h1>Following a Dollar Through the Tokenomy</h1>
     <p class="dek">How the neocloud and token-selling businesses work, who keeps how much of each dollar along the way, and why every layer can look profitable at the same time.</p>
+    <div class="pills"><a class="pill primary" href="../assets/tokenomy-report.pdf">Read the full report (PDF)</a><a class="pill" href="../#blog">← all posts</a></div>
+  </section>
 
+  <div class="pgrid">
+    <aside class="ptoc" aria-label="Contents">
+      <ol>
+        <li><a href="#units"><span class="n">01</span><span class="t">AI is sold in two units</span></a></li>
+        <li><a href="#life"><span class="n">02</span><span class="t">Every token passes through a long supply chain</span></a></li>
+        <li><a href="#chain"><span class="n">03</span><span class="t">Most of each dollar stays with the model company</span></a></li>
+        <li><a href="#neocloud"><span class="n">04</span><span class="t">Neoclouds live on the spread between rent and cost</span></a></li>
+        <li><a href="#tokens"><span class="n">05</span><span class="t">Labs earn their margin converting GPU-hours into tokens</span></a></li>
+        <li><a href="#deepseek"><span class="n">06</span><span class="t">DeepSeek is the one lab that has published its numbers</span></a></li>
+        <li><a href="#data"><span class="n">07</span><span class="t">Labs also buy data and environments</span></a></li>
+        <li><a href="#loop"><span class="n">08</span><span class="t">Much of the money starts at the bottom of the stack</span></a></li>
+        <li><a href="#paper"><span class="n">09</span><span class="t">Every layer can report a profit while the system loses money</span></a></li>
+        <li><a href="#press"><span class="n">10</span><span class="t">The press turned skeptical this month</span></a></li>
+        <li><a href="#watch"><span class="n">11</span><span class="t">A few numbers will decide how this plays out</span></a></li>
+        <li><a href="#citation"><span class="n">12</span><span class="t">Citation and references</span></a></li>
+      </ol>
+    </aside>
+
+    <aside class="pmeta" aria-label="Details">
+      <dl>
+        <div class="row"><dt>Published</dt><dd>Oct 17, 2026</dd></div>
+        <div class="row"><dt>Author</dt><dd>Ziqi Zhou</dd></div>
+        <div class="row"><dt>Reading</dt><dd>~18 min</dd></div>
+        <div class="row"><dt>Topics</dt><dd><span>ai-economics</span><span>neocloud</span></dd></div>
+      </dl>
+    </aside>
+
+  <article class="article pbody">
     <div class="tldr">
       <b>TL;DR</b>
       <ul>
@@ -51,24 +83,6 @@
         <li>This month the market is testing the weakest link, with CoreWeave's bonds yielding around 15% and lenders pulling back.</li>
       </ul>
     </div>
-
-    <nav class="tldr" aria-label="Table of contents">
-      <b>CONTENTS</b>
-      <ul>
-        <li><a href="#units">AI is sold in two units</a></li>
-        <li><a href="#life">Every token passes through a long supply chain</a></li>
-        <li><a href="#chain">Most of each dollar stays with the model company</a></li>
-        <li><a href="#neocloud">Neoclouds live on the spread between rent and cost</a></li>
-        <li><a href="#tokens">Labs earn their margin converting GPU-hours into tokens</a></li>
-        <li><a href="#deepseek">DeepSeek is the one lab that has published its numbers</a></li>
-        <li><a href="#data">Labs also buy data and environments</a></li>
-        <li><a href="#loop">Much of the money starts at the bottom of the stack</a></li>
-        <li><a href="#paper">Every layer can report a profit while the system loses money</a></li>
-        <li><a href="#press">The press turned skeptical this month</a></li>
-        <li><a href="#watch">A few numbers will decide how this plays out</a></li>
-        <li><a href="#citation">Citation and references</a></li>
-      </ul>
-    </nav>
 
     <div class="prose">
       <p>A year ago "neocloud" was industry jargon. This week it is in the business headlines, after CoreWeave, the largest of the new GPU clouds, lost 15% of its market value in a day when a chart of its bond yield spread on social media (Edwards, 2026). Behind the headlines is a basic question that turns out to be hard to answer. When someone pays for an AI answer, where does the money go, and does anyone along the way make a profit?</p>
@@ -546,12 +560,10 @@ https://ziqi-zhou02.github.io/posts/tokenomy.html</pre>
       </ol>
     </section>
   </article>
+  </div>
 
-  <footer class="footer">
-    <span>© <span id="year"></span> Ziqi Zhou</span>
-    <a class="muted" href="#top" onclick="scrollTo({top:0,behavior:'smooth'});return false;">back to top ↑</a>
-  </footer>
+  <footer class="pfoot"><span>© <span id="yr"></span> ziqi zhou</span><a href="../#blog">← all posts</a></footer>
 
-  <script src="../assets/main.js"></script>
+  <script src="../assets/post.js"></script>
 </body>
 </html>

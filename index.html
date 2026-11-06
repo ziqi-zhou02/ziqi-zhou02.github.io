@@ -256,7 +256,7 @@
         document.getElementById(t.dataset.tab).classList.toggle('on', on);
         if (on) { ind.style.left = t.offsetLeft + 'px'; ind.style.width = t.offsetWidth + 'px'; }
       });
-      if (push) history.replaceState(null, '', '#' + name);
+      if (push) { try { history.replaceState(null, '', '#' + name); } catch (e) {} }
       if (name === 'about') develop(0);
     }
     tabs.forEach(t => {
